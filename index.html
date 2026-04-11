@@ -61,6 +61,13 @@
             overflow-x: hidden;
             padding-top: 90px;
             padding-bottom: 160px; 
+            /* Efeito suave ao abrir a página pela primeira vez */
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .header {
@@ -79,14 +86,14 @@
         .sites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
 
         .site-card {
-            background: var(--card-bg); border-radius: var(--radius); padding: 24px;
+            background: var(--card-bg); border-radius: var(--radius); padding: 10px 10px 10px 40px;
             border: 1px solid var(--border-color); box-shadow: var(--shadow-soft);
             transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; flex-direction: column;
         }
         .site-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
         .site-card h3 { font-size: 1.4em; font-weight: 600; margin-bottom: 8px; color: var(--text-color); word-break: break-word; }
         .site-card p { color: #555; font-size: 1em; line-height: 1.5; margin-bottom: 20px; flex-grow: 1; }
-        .site-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .site-actions { display: flex; gap: 8px; flex-wrap: nowrap; }
 
         /* TOOLBAR */
         .toolbar {
@@ -120,7 +127,7 @@
         .btn-danger { background: var(--danger-bg); color: var(--danger-color); }
         .btn-danger:hover { background: var(--danger-color); color: white; }
 
-        .floating-actions { position: fixed; bottom: 160px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 1500; }
+        .floating-actions { position: fixed; bottom: 160px; left: 4px; display: flex; flex-direction: column; gap: 15px; z-index: 1500; }
         .fab-btn {
             width: 56px; height: 56px; border-radius: 50%; border: none; color: white; font-size: 24px;
             cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); transition: all 0.2s ease;
@@ -169,7 +176,7 @@
         }
         #clearCodeSearchBtn {
             position: absolute;
-            left: calc(100% - 150px);
+            left: calc(90% - 150px);
             background: none; border: none; font-size: 18px; font-weight: bold;
             color: #86868b; cursor: pointer; padding: 5px; display: none;
         }
@@ -206,14 +213,36 @@
             font-size: 16px; font-weight: 600; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 15px; flex: 1; text-align: center;
         }
         #offlineIndicator { border-radius: 20px; font-size: 12px; padding: 4px 12px; background: #ff9f0a; color: white; font-weight: 600; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); }
+
+        /* TELA DE LOADING SUAVE (SMOOTH RELOAD) */
+        .smooth-loader {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(245, 245, 247, 0.98); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .smooth-loader.show { opacity: 1; }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--border-color);
+            border-top-color: var(--primary-color); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        .smooth-loader p { font-size: 18px; font-weight: 600; color: var(--text-color); font-family: var(--font-family); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         @media (max-width: 768px) { 
             .toolbar .btn { flex: 1; justify-content: center; } 
-            #clearCodeSearchBtn { left: calc(100% - 135px); } 
+            #clearCodeSearchBtn { left: calc(90% - 135px); } 
         }
     </style>
 </head>
 
 <body>
+    <div class="smooth-loader" id="smoothLoader">
+        <div class="spinner"></div>
+        <p>Otimizando ferramentas...</p>
+    </div>
+
     <div class="header">
         <h1>Ferramentas</h1>
         <div id="offlineIndicator" style="display: none;">📱 Offline</div>
@@ -463,15 +492,21 @@
             } catch (error) { renderSites(); }
         }
 
+        // Função SaveSites agora retorna uma Promise para garantir que salvou antes de recarregar
         async function saveSites() {
-            try {
+            return new Promise(async (resolve) => {
                 sites.forEach(site => { site._searchIndex = normalizeText(`${site.name} ${site.description || ''}`); });
                 const db = await initDB();
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
-                const clearRequest = store.clear();
-                clearRequest.onsuccess = () => { sites.forEach(site => store.add(site)); };
-            } catch (error) {}
+                store.clear();
+                sites.forEach(site => store.add(site));
+                
+                // Aguarda o banco de dados confirmar a gravação
+                transaction.oncomplete = () => {
+                    resolve();
+                };
+            });
         }
 
         // ==========================================
@@ -502,7 +537,7 @@
                     <div class="site-actions">
                         <button class="btn btn-primary" onclick="openSite(${index})">Abrir</button>
                         <button class="btn btn-secondary" onclick="editSite(${index})">Editar</button>
-                        <button class="btn btn-secondary" onclick="openExportSingleModal(${index})">↓ Salvar</button>
+                        <button class="btn btn-secondary" onclick="openExportSingleModal(${index})">Salvar</button>
                         <button class="btn btn-danger" onclick="deleteSite(${index})">Excluir</button>
                     </div>
                 `;
@@ -551,7 +586,7 @@
         }
 
         // ==========================================
-        // AÇÕES (ABRIR COM DESTRUIÇÃO DE IFRAME E SRCDOC SEGURO)
+        // AÇÕES
         // ==========================================
         function openSite(index) {
             currentSiteIndex = index; lastOpenedSiteIndex = index;
@@ -560,26 +595,17 @@
             document.getElementById('fullscreenTitle').textContent = site.name;
             
             const overlay = document.getElementById('fullscreenOverlay');
-
-            // 1. Mostrar a tela ANTES de tudo para matar a preguiça do celular
             overlay.style.display = 'block';
 
-            // 2. Localiza e destrói o iframe velho se ele existir
             const oldIframe = document.getElementById('siteFrame');
-            if (oldIframe) {
-                oldIframe.remove();
-            }
+            if (oldIframe) { oldIframe.remove(); }
 
-            // 3. Cria um iframe 100% fresco na memória
             const newIframe = document.createElement('iframe');
             newIframe.id = 'siteFrame';
             newIframe.className = 'site-frame';
-
-            // 4. Cola o iframe novo na tela (logo acima do menu inferior)
             overlay.insertBefore(newIframe, overlay.querySelector('.fullscreen-header'));
 
-            // 5. O SEGREDO MÁXIMO: Usa o 'srcdoc' porque ele é seguro para arquivos locais
-            // Um pequeno delay garante que a tela "respirou" e percebeu o iframe novo
+            // Utiliza o SRCDOC seguro
             setTimeout(() => {
                 newIframe.srcdoc = site.code;
             }, 50);
@@ -587,7 +613,7 @@
 
         function closeFullscreen() {
             const iframe = document.getElementById('siteFrame');
-            if (iframe) iframe.srcdoc = ''; // Limpa para parar vídeos/áudios invisíveis
+            if (iframe) iframe.srcdoc = ''; 
             document.getElementById('fullscreenOverlay').style.display = 'none';
             currentSiteIndex = -1; renderSites();
         }
@@ -636,7 +662,24 @@
 
         function closeSiteModal() { document.getElementById('siteModal').style.display = 'none'; }
 
-        document.getElementById('siteForm').addEventListener('submit', function (e) {
+        // ==========================================
+        // SISTEMA DE RELOAD SUAVE
+        // ==========================================
+        function triggerSmoothReload() {
+            const loader = document.getElementById('smoothLoader');
+            loader.style.display = 'flex';
+            
+            // Dá um tempinho para a animação aparecer antes de recarregar
+            setTimeout(() => {
+                loader.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }
+
+        document.getElementById('siteForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             if (!codeEditor.getValue().trim()) { alert("O código não pode estar vazio."); return; }
 
@@ -647,7 +690,14 @@
             };
             if (editingIndex >= 0) sites[editingIndex] = siteData;
             else sites.push(siteData);
-            saveSites(); renderSites(); closeSiteModal();
+            
+            closeSiteModal();
+            
+            // Aguarda o IndexedDB salvar os dados com segurança
+            await saveSites();
+            
+            // Dispara o refresh mágico que arruma o cache do Service Worker
+            triggerSmoothReload();
         });
 
         window.addEventListener('click', function (e) {
@@ -758,13 +808,14 @@
 
         function processJSONImport(file) {
             const reader = new FileReader();
-            reader.onload = e => {
+            reader.onload = async e => {
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (Array.isArray(imported)) {
                         if (confirm('Misturar aos existentes?\n[OK] = Sim\n[Cancelar] = Substituir tudo')) sites = sites.concat(imported);
                         else sites = imported;
-                        saveSites(); renderSites(); alert('Sucesso!');
+                        await saveSites(); 
+                        triggerSmoothReload(); // Dispara o reload suave ao importar
                     } else alert('JSON inválido!');
                 } catch (err) { alert('Erro: ' + err.message); }
             };
@@ -786,7 +837,8 @@
                         if (confirm(msg)) {
                             if (imported.length === 1) sites = sites.concat(imported);
                             else sites = imported;
-                            saveSites(); renderSites(); alert('Sucesso!');
+                            await saveSites(); 
+                            triggerSmoothReload();
                         }
                     }
                 } else {
@@ -797,7 +849,11 @@
                             newSites.push({ name: name.replace('.html', '').replace(/_/g, ' '), description: 'Importado', code: html });
                         }
                     }
-                    if (newSites.length > 0 && confirm(`Adicionar ${newSites.length} HTMLs?`)) { sites = sites.concat(newSites); saveSites(); renderSites(); alert('Sucesso!'); }
+                    if (newSites.length > 0 && confirm(`Adicionar ${newSites.length} HTMLs?`)) { 
+                        sites = sites.concat(newSites); 
+                        await saveSites(); 
+                        triggerSmoothReload(); 
+                    }
                 }
             } catch (err) {}
         }
