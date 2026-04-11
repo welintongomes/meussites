@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SiteVault</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26;
+    --border: #2a2a3d; --accent: #6c63ff; --accent2: #ff6584;
+    --accent3: #43e97b; --text: #e8e8f0; --text2: #8888aa;
+    --radius: 12px;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
+
+  /* HEADER */
+  #sv-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100; flex-wrap: wrap;
+  }
+  #sv-logo { font-family: var(--mono); font-size: 1.05rem; font-weight: 700; color: var(--accent); letter-spacing: -1px; white-space: nowrap; flex-shrink: 0; }
+  #sv-logo span { color: var(--accent2); }
+  #sv-search {
+    flex: 1; min-width: 120px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; color: var(--text); font-family: var(--mono);
+    font-size: .78rem; outline: none; transition: border-color .2s;
+  }
+  #sv-search:focus { border-color: var(--accent); }
+  #sv-search::placeholder { color: var(--text2); }
+
+  .sv-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 12px; border-radius: 8px; border: none;
+    font-family: var(--mono); font-size: .72rem; font-weight: 700;
+    cursor: pointer; transition: opacity .15s, transform .1s;
+    white-space: nowrap; flex-shrink: 0; line-height: 1;
+  }
+  .sv-btn:active { transform: scale(.96); }
+  .sv-btn-primary { background: var(--accent); color: #fff; }
+  .sv-btn-danger  { background: #3d1a22; color: var(--accent2); border: 1px solid #5a2535; }
+  .sv-btn-ghost   { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+  .sv-btn-success { background: #1a3d2a; color: var(--accent3); border: 1px solid #2a5a3d; }
+  .sv-btn:hover { opacity: .82; }
+  #sv-header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* GRID */
+  #sv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 14px; padding: 16px;
+  }
+  .sv-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: border-color .2s, transform .18s;
+  }
+  .sv-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  /* Preview thumbnail - sandbox mínimo (só visual) */
+  .sv-card-preview {
+    height: 130px; background: var(--surface2);
+    position: relative; overflow: hidden; cursor: pointer;
+  }
+  .sv-card-preview iframe {
+    width: 300%; height: 300%;
+    transform: scale(.333); transform-origin: top left;
+    border: none; pointer-events: none; display: block;
+  }
+  .sv-card-preview-overlay { position: absolute; inset: 0; }
+
+  .sv-card-body { padding: 12px 14px; flex: 1; cursor: pointer; }
+  .sv-card-name { font-size: .95rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 4px; }
+  .sv-card-meta { font-family: var(--mono); font-size: .66rem; color: var(--text2); }
+
+  .sv-card-actions {
+    display: flex; gap: 5px; padding: 8px 12px;
+    background: var(--surface2); border-top: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .sv-card-actions .sv-btn { padding: 5px 9px; font-size: .68rem; }
+
+  /* EMPTY */
+  #sv-empty { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text2); display: none; }
+  #sv-empty svg { opacity: .25; margin-bottom: 14px; display: block; margin-inline: auto; }
+  #sv-empty p { font-family: var(--mono); font-size: .82rem; margin-bottom: 14px; }
+
+  /* MODAL */
+  .sv-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.82); backdrop-filter: blur(6px);
+    z-index: 200; align-items: center; justify-content: center; padding: 12px;
+  }
+  .sv-overlay.active { display: flex; }
+  .sv-modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); width: 100%; max-width: 620px;
+    max-height: 92vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .sv-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .sv-modal-header h2 { font-size: .95rem; font-weight: 800; }
+  .sv-btn-close { background: none; border: none; color: var(--text2); font-size: 1.1rem; cursor: pointer; padding: 4px; line-height: 1; }
+  .sv-btn-close:hover { color: var(--accent2); }
+  .sv-modal-body { padding: 16px 18px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .sv-field label { display: block; font-family: var(--mono); font-size: .68rem; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
+  .sv-field input, .sv-field textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 12px; color: var(--text);
+    font-family: var(--mono); font-size: .76rem; outline: none;
+    transition: border-color .2s; resize: vertical;
+  }
+  .sv-field input:focus, .sv-field textarea:focus { border-color: var(--accent); }
+  .sv-field textarea { min-height: 200px; }
+  .sv-modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 18px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+  /* VIEWER FULLSCREEN */
+  #sv-viewer { display: none; position: fixed; inset: 0; z-index: 500; background: #000; flex-direction: column; }
+  #sv-viewer.active { display: flex; }
+  #sv-viewer-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 12px; background: var(--surface);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  #sv-viewer-title { flex: 1; font-family: var(--mono); font-size: .78rem; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /*
+   * IFRAME DO VIEWER
+   * sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads"
+   *
+   * Por que allow-same-origin é necessário aqui:
+   *   → Quando rodando via file://, blob:null herda origem opaca
+   *     e o browser bloqueia IndexedDB/localStorage nela.
+   *   → Com allow-same-origin o iframe compartilha a origem file://
+   *     e todas as APIs do browser ficam disponíveis.
+   *
+   * Como o gerenciador é protegido mesmo assim:
+   *   → Todo o estado e funções do gerenciador vivem dentro de
+   *     uma IIFE/closure — não há nada no window global que o
+   *     site interno possa chamar acidentalmente.
+   *   → O único objeto exposto no window é "SV" (somente métodos
+   *     de UI, sem acesso ao banco de dados ou ao estado interno).
+   *   → CSS: o viewer tem seu próprio documento. CSS do site
+   *     interno não vaza porque iframes têm stylesheet separado.
+   */
+  #sv-viewer-frame { flex: 1; width: 100%; border: none; display: block; }
+
+  /* TOAST */
+  #sv-toast {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(70px);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 18px;
+    font-family: var(--mono); font-size: .76rem; color: var(--text);
+    z-index: 999; transition: transform .28s ease;
+    pointer-events: none; white-space: nowrap;
+  }
+  #sv-toast.show { transform: translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header id="sv-header">
+  <div id="sv-logo">Site<span>Vault</span></div>
+  <input id="sv-search" type="search" placeholder="🔍 pesquisar sites...">
+  <div id="sv-header-actions">
+    <button class="sv-btn sv-btn-primary" onclick="SV.openAdd()">＋ Novo</button>
+    <button class="sv-btn sv-btn-success" onclick="SV.importAll()">⬆ Importar</button>
+    <button class="sv-btn sv-btn-ghost"   onclick="SV.exportAll()">⬇ Exportar tudo</button>
+  </div>
+</header>
+
+<main id="sv-grid">
+  <div id="sv-empty">
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+      <rect x="6" y="10" width="44" height="36" rx="4" stroke="#6c63ff" stroke-width="1.8"/>
+      <path d="M6 18h44" stroke="#6c63ff" stroke-width="1.8"/>
+      <circle cx="13" cy="14" r="1.8" fill="#6c63ff"/>
+      <circle cx="19" cy="14" r="1.8" fill="#ff6584"/>
+      <circle cx="25" cy="14" r="1.8" fill="#43e97b"/>
+    </svg>
+    <p>Nenhum site salvo ainda.</p>
+    <button class="sv-btn sv-btn-primary" onclick="SV.openAdd()">＋ Adicionar primeiro site</button>
+  </div>
+</main>
+
+<!-- Modal add/edit -->
+<div class="sv-overlay" id="sv-modal-overlay">
+  <div class="sv-modal">
+    <div class="sv-modal-header">
+      <h2 id="sv-modal-title">Novo Site</h2>
+      <button class="sv-btn-close" onclick="SV.closeModal()">✕</button>
+    </div>
+    <div class="sv-modal-body">
+      <div class="sv-field">
+        <label>Nome do site</label>
+        <input id="sv-input-name" type="text" placeholder="Ex: Jogo de Damas">
+      </div>
+      <div class="sv-field">
+        <label>Código HTML completo</label>
+        <textarea id="sv-input-code" placeholder="Cole aqui o HTML completo (<!DOCTYPE html>...)"></textarea>
+      </div>
+    </div>
+    <div class="sv-modal-footer">
+      <button class="sv-btn sv-btn-ghost"   onclick="SV.closeModal()">Cancelar</button>
+      <button class="sv-btn sv-btn-primary"  onclick="SV.save()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmar delete -->
+<div class="sv-overlay" id="sv-confirm-overlay">
+  <div class="sv-modal" style="max-width:360px">
+    <div class="sv-modal-header">
+      <h2>Apagar site?</h2>
+      <button class="sv-btn-close" onclick="SV.closeConfirm()">✕</button>
+    </div>
+    <div class="sv-modal-body">
+      <p style="font-family:var(--mono);font-size:.8rem;color:var(--text2);line-height:1.6">
+        Essa ação é irreversível.<br>
+        "<span id="sv-del-name" style="color:var(--accent2)"></span>" será removido permanentemente.
+      </p>
+    </div>
+    <div class="sv-modal-footer">
+      <button class="sv-btn sv-btn-ghost"  onclick="SV.closeConfirm()">Cancelar</button>
+      <button class="sv-btn sv-btn-danger" onclick="SV.confirmDelete()">Apagar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Viewer fullscreen -->
+<div id="sv-viewer">
+  <div id="sv-viewer-bar">
+    <button class="sv-btn sv-btn-ghost" onclick="SV.closeViewer()" style="padding:5px 10px">✕ Fechar</button>
+    <span id="sv-viewer-title"></span>
+  </div>
+  <iframe
+    id="sv-viewer-frame"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock"
+    allowfullscreen
+  ></iframe>
+</div>
+
+<!-- Toast -->
+<div id="sv-toast"></div>
+
+<!-- Inputs ocultos para import -->
+<input type="file" id="sv-file-all" accept=".json" style="display:none">
+<input type="file" id="sv-file-one" accept=".json" style="display:none">
+
+<script>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  SiteVault – tudo dentro de IIFE, nada exposto globalmente  ║
+// ║  exceto o objeto SV com apenas métodos de UI                ║
+// ╚══════════════════════════════════════════════════════════════╝
+const SV = (function () {
+  'use strict';
+
+  // ── IndexedDB do GERENCIADOR (prefixo sv_ para não colidir) ──
+  const DB_NAME = 'SiteVaultDB_v3';
+  const STORE   = 'sv_sites';
+  let _db = null;
+
+  function dbOpen() {
+    return new Promise((res, rej) => {
+      if (_db) return res(_db);
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE))
+          db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+      };
+      req.onsuccess = e => { _db = e.target.result; res(_db); };
+      req.onerror   = e => rej(e.target.error);
+    });
+  }
+
+  function pReq(req) {
+    return new Promise((res, rej) => {
+      req.onsuccess = e => res(e.target.result);
+      req.onerror   = e => rej(e.target.error);
+    });
+  }
+
+  async function getStore(mode) {
+    const db = await dbOpen();
+    return db.transaction(STORE, mode).objectStore(STORE);
+  }
+
+  const dbGetAll = async () => pReq((await getStore('readonly')).getAll());
+  const dbGet    = async id => pReq((await getStore('readonly')).get(id));
+  const dbPut    = async rec => pReq((await getStore('readwrite')).put(rec));
+  const dbDel    = async id => new Promise(async (res, rej) => {
+    const r = (await getStore('readwrite')).delete(id);
+    r.onsuccess = () => res();
+    r.onerror   = e => rej(e.target.error);
+  });
+
+  // ── Estado interno (privado, inacessível pelo iframe) ────────
+  let _sites  = [];
+  let _editId = null;
+  let _delId  = null;
+  let _query  = '';
+
+  // ── DOM helpers ──────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+
+  // ── Toast ────────────────────────────────────────────────────
+  let _tt;
+  function toast(msg) {
+    const el = $('sv-toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(_tt);
+    _tt = setTimeout(() => el.classList.remove('show'), 2800);
+  }
+
+  // ── Utilitários ──────────────────────────────────────────────
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtDate(ts) {
+    return ts ? new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}) : '';
+  }
+  function fmtSize(code) {
+    const kb = code.length / 1024;
+    return kb < 1 ? code.length + ' B' : kb.toFixed(1) + ' KB';
+  }
+  function dlJSON(data, name) {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+    Object.assign(document.createElement('a'),{href:url,download:name}).click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // ── Render grid ──────────────────────────────────────────────
+  function renderGrid() {
+    const q    = _query.trim().toLowerCase();
+    const list = q ? _sites.filter(s => s.name.toLowerCase().includes(q)) : _sites;
+
+    $('sv-grid').querySelectorAll('.sv-card').forEach(c => c.remove());
+    $('sv-empty').style.display = list.length ? 'none' : 'block';
+
+    list.forEach(site => {
+      const card = document.createElement('div');
+      card.className = 'sv-card';
+
+      // Thumbnail – sandbox mínimo (sem allow-same-origin)
+      // → scripts visuais rodam, mas storage bloqueado = seguro
+      const pWrap = document.createElement('div');
+      pWrap.className = 'sv-card-preview';
+      pWrap.title = 'Clique para abrir em tela cheia';
+
+      const pFrame = document.createElement('iframe');
+      pFrame.sandbox = 'allow-scripts';
+      pFrame.srcdoc  = site.code;
+      pFrame.setAttribute('aria-hidden','true');
+      pFrame.setAttribute('tabindex','-1');
+
+      const pOver = document.createElement('div');
+      pOver.className = 'sv-card-preview-overlay';
+      pWrap.append(pFrame, pOver);
+      pWrap.addEventListener('click', () => openViewer(site.id));
+
+      // Body
+      const body = document.createElement('div');
+      body.className = 'sv-card-body';
+      body.innerHTML = `<div class="sv-card-name">${esc(site.name)}</div>
+        <div class="sv-card-meta">${fmtDate(site.createdAt)} · ${fmtSize(site.code)}</div>`;
+      body.addEventListener('click', () => openViewer(site.id));
+
+      // Ações
+      const acts = document.createElement('div');
+      acts.className = 'sv-card-actions';
+      function mkBtn(cls, label, fn) {
+        const b = document.createElement('button');
+        b.className = 'sv-btn ' + cls;
+        b.textContent = label;
+        b.onclick = fn;
+        return b;
+      }
+      acts.append(
+        mkBtn('sv-btn-ghost',   '✏ Editar',  () => openEdit(site.id)),
+        mkBtn('sv-btn-success', '⬇ Export',  () => exportOne(site.id)),
+        mkBtn('sv-btn-ghost',   '⬆ Import',  () => { $('sv-file-one').value=''; $('sv-file-one').click(); }),
+        mkBtn('sv-btn-danger',  '🗑',         () => askDelete(site.id, site.name))
+      );
+
+      card.append(pWrap, body, acts);
+      $('sv-grid').appendChild(card);
+    });
+  }
+
+  async function loadSites() {
+    _sites = await dbGetAll();
+    _sites.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    renderGrid();
+  }
+
+  // ── Modal adicionar/editar ───────────────────────────────────
+  function openAdd() {
+    _editId = null;
+    $('sv-modal-title').textContent = 'Novo Site';
+    $('sv-input-name').value = '';
+    $('sv-input-code').value = '';
+    $('sv-modal-overlay').classList.add('active');
+    setTimeout(() => $('sv-input-name').focus(), 60);
+  }
+
+  async function openEdit(id) {
+    const site = await dbGet(id);
+    if (!site) return;
+    _editId = id;
+    $('sv-modal-title').textContent = 'Editar Site';
+    $('sv-input-name').value = site.name;
+    $('sv-input-code').value = site.code;
+    $('sv-modal-overlay').classList.add('active');
+    setTimeout(() => $('sv-input-name').focus(), 60);
+  }
+
+  function closeModal() { $('sv-modal-overlay').classList.remove('active'); }
+
+  async function save() {
+    const name = $('sv-input-name').value.trim();
+    const code = $('sv-input-code').value.trim();
+    if (!name) { toast('⚠ Dê um nome ao site.'); return; }
+    if (!code) { toast('⚠ Cole o código HTML.'); return; }
+    const now = Date.now();
+    const rec = { name, code };
+    if (_editId !== null) {
+      const old = await dbGet(_editId);
+      rec.id = _editId;
+      rec.createdAt = old?.createdAt || now;
+      rec.updatedAt = now;
+    } else {
+      rec.createdAt = now;
+    }
+    await dbPut(rec);
+    closeModal();
+    await loadSites();
+    toast(_editId !== null ? '✅ Site atualizado!' : '✅ Site salvo!');
+  }
+
+  // ── Delete ───────────────────────────────────────────────────
+  function askDelete(id, name) {
+    _delId = id;
+    $('sv-del-name').textContent = name;
+    $('sv-confirm-overlay').classList.add('active');
+  }
+  function closeConfirm() {
+    $('sv-confirm-overlay').classList.remove('active');
+    _delId = null;
+  }
+  async function confirmDelete() {
+    if (_delId === null) return;
+    await dbDel(_delId);
+    closeConfirm();
+    await loadSites();
+    toast('🗑 Site apagado.');
+  }
+
+  // ── Viewer ───────────────────────────────────────────────────
+  // Usa srcdoc com sandbox completo (allow-same-origin incluído).
+  // O site interno recebe TODAS as APIs do browser normalmente.
+  //
+  // Proteção do gerenciador:
+  //   1. Todo o estado e lógica está numa IIFE — window.SV só
+  //      expõe métodos de UI, sem acesso ao banco nem ao estado.
+  //   2. O banco do gerenciador usa nome único "SiteVaultDB_v3"
+  //      com store "sv_sites" — colisão de nome improvável.
+  //   3. CSS do iframe é completamente isolado (documento separado).
+  //   4. O site interno não sabe que está dentro de um gerenciador.
+  //
+  async function openViewer(id) {
+    const site = await dbGet(id);
+    if (!site) return;
+
+    const frame = $('sv-viewer-frame');
+
+    // Limpa o frame antes de carregar novo conteúdo
+    frame.removeAttribute('srcdoc');
+    frame.srcdoc = '';
+
+    // Pequeno tick para o browser resetar o frame
+    await new Promise(r => setTimeout(r, 30));
+
+    $('sv-viewer-title').textContent = site.name;
+    frame.srcdoc = site.code;
+    $('sv-viewer').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeViewer() {
+    const frame = $('sv-viewer-frame');
+    $('sv-viewer').classList.remove('active');
+    // Mata o documento do iframe de forma segura
+    frame.srcdoc = '';
+    document.body.style.overflow = '';
+  }
+
+  // ── Export/Import ────────────────────────────────────────────
+  async function exportAll() {
+    const sites = await dbGetAll();
+    if (!sites.length) { toast('Nenhum site para exportar.'); return; }
+    dlJSON({ version:3, sites }, `sitevault-backup-${Date.now()}.json`);
+    toast(`⬇ ${sites.length} site(s) exportados.`);
+  }
+
+  async function exportOne(id) {
+    const site = await dbGet(id);
+    if (!site) return;
+    dlJSON({ version:3, sites:[site] }, `${site.name.replace(/\s+/g,'_')}.sitevault.json`);
+    toast(`⬇ "${site.name}" exportado.`);
+  }
+
+  function importAll() { $('sv-file-all').value=''; $('sv-file-all').click(); }
+
+  async function handleImportAll(e) {
+    const file = e.target.files[0]; if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data.sites)) throw 0;
+      let n = 0;
+      for (const s of data.sites) {
+        if (!s.name || !s.code) continue;
+        // Sem id → auto-increment gera novo (sem colisão)
+        await dbPut({ name:s.name, code:s.code, createdAt:s.createdAt||Date.now() });
+        n++;
+      }
+      await loadSites();
+      toast(`✅ ${n} site(s) importados.`);
+    } catch { toast('⚠ Arquivo inválido.'); }
+  }
+
+  async function handleImportOne(e) {
+    const file = e.target.files[0]; if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      const s = (data.sites||[])[0];
+      if (!s?.name || !s?.code) throw 0;
+      await dbPut({ name:s.name, code:s.code, createdAt:s.createdAt||Date.now() });
+      await loadSites();
+      toast(`✅ "${s.name}" importado.`);
+    } catch { toast('⚠ Arquivo inválido.'); }
+  }
+
+  // ── Eventos globais ──────────────────────────────────────────
+  $('sv-search').addEventListener('input', function() { _query=this.value; renderGrid(); });
+  $('sv-file-all').addEventListener('change', handleImportAll);
+  $('sv-file-one').addEventListener('change', handleImportOne);
+
+  $('sv-modal-overlay').addEventListener('click', e => {
+    if (e.target === $('sv-modal-overlay')) closeModal();
+  });
+  $('sv-confirm-overlay').addEventListener('click', e => {
+    if (e.target === $('sv-confirm-overlay')) closeConfirm();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if ($('sv-viewer').classList.contains('active'))               closeViewer();
+    else if ($('sv-confirm-overlay').classList.contains('active')) closeConfirm();
+    else if ($('sv-modal-overlay').classList.contains('active'))   closeModal();
+  });
+
+  // ── Init ─────────────────────────────────────────────────────
+  loadSites();
+
+  // Apenas métodos de UI são públicos — estado e DB são privados
+  return { openAdd, openEdit, closeModal, save,
+           askDelete, closeConfirm, confirmDelete,
+           closeViewer, exportAll, exportOne, importAll };
+})();
+</script>
+</body>
+</html>
