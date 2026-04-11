@@ -60,7 +60,7 @@
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            /* margin-bottom: 30px; */
         }
 
         .header h1 {
@@ -129,12 +129,14 @@
             font-weight: bold;
         }
 
-        .sites-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-            padding-bottom: 80px; /* Espaço para botões flutuantes */
-        }
+.sites-grid {
+    overflow: scroll;
+    max-height: 550px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    padding-bottom: 10px;
+}
 
         .site-card {
             background: var(--card-bg);
@@ -377,13 +379,13 @@
         @media (max-width: 768px) {
             .container { padding: 20px 15px; }
             .header h1 { font-size: 2em; }
-            .toolbar { flex-direction: column; padding: 15px; align-items: stretch; }
+            .toolbar { display: flex; flex-direction: row-reverse; padding: 15px 15px 15px 70px; justify-content: space-between; }
             .search-container { max-width: 100%; }
-            .toolbar .btn { width: 100%; justify-content: center; }
+            .toolbar .btn { width: 47%; justify-content: center; }
             
             .floating-actions {
                 bottom: 20px;
-                right: 20px;
+                left: 20px;
             }
         }
     </style>
@@ -393,11 +395,14 @@
     <div class="container">
         <div class="header">
             <h1>Ferramentas</h1>
-            <p>Seu espaço de trabalho local</p>
             <div id="offlineIndicator" style="display: none;">📱 Modo Offline</div>
         </div>
 
-        <div class="toolbar">
+        
+
+        <div class="sites-grid" id="sitesGrid">
+            </div>
+            <div class="toolbar">
             <div class="search-container">
                 <input type="text" id="searchInput" placeholder="Pesquisar ferramentas...">
                 <button id="clearSearch">×</button>
@@ -406,9 +411,6 @@
             <button class="btn btn-secondary" onclick="document.getElementById('importFileMaster').click()">📂 Importar</button>
             <input type="file" id="importFileMaster" accept=".json, .zip" style="display: none;" onchange="handleUniversalImport(event)">
         </div>
-
-        <div class="sites-grid" id="sitesGrid">
-            </div>
     </div>
 
     <div class="floating-actions">
