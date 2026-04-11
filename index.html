@@ -194,6 +194,7 @@
         /* TELA CHEIA (IFRAME) */
         .fullscreen-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 5000; }
         .site-frame { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 60px - env(safe-area-inset-bottom, 0px)); border: none; background: white; z-index: 1; }
+        
         .fullscreen-header {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 60px;
             background: rgba(245, 245, 247, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
@@ -550,7 +551,7 @@
         }
 
         // ==========================================
-        // AÇÕES (ABRIR COM RESSURREIÇÃO DE IFRAME)
+        // AÇÕES (ABRIR COM DESTRUIÇÃO DE IFRAME E SRCDOC SEGURO)
         // ==========================================
         function openSite(index) {
             currentSiteIndex = index; lastOpenedSiteIndex = index;
@@ -560,32 +561,33 @@
             
             const overlay = document.getElementById('fullscreenOverlay');
 
-            // 1. Destrói o iframe antigo por completo
+            // 1. Mostrar a tela ANTES de tudo para matar a preguiça do celular
+            overlay.style.display = 'block';
+
+            // 2. Localiza e destrói o iframe velho se ele existir
             const oldIframe = document.getElementById('siteFrame');
             if (oldIframe) {
                 oldIframe.remove();
             }
 
-            // 2. Cria um iframe 100% novo (força o navegador a baixar fontes/scripts de novo)
+            // 3. Cria um iframe 100% fresco na memória
             const newIframe = document.createElement('iframe');
             newIframe.id = 'siteFrame';
             newIframe.className = 'site-frame';
 
-            // 3. Insere o novo iframe na tela ANTES do cabeçalho
+            // 4. Cola o iframe novo na tela (logo acima do menu inferior)
             overlay.insertBefore(newIframe, overlay.querySelector('.fullscreen-header'));
 
-            // 4. Mostra a tela
-            overlay.style.display = 'block';
-
-            // 5. Injeta o código com srcdoc (mantém a origem segura para o banco de dados funcionar localmente)
+            // 5. O SEGREDO MÁXIMO: Usa o 'srcdoc' porque ele é seguro para arquivos locais
+            // Um pequeno delay garante que a tela "respirou" e percebeu o iframe novo
             setTimeout(() => {
                 newIframe.srcdoc = site.code;
-            }, 10);
+            }, 50);
         }
 
         function closeFullscreen() {
             const iframe = document.getElementById('siteFrame');
-            if (iframe) iframe.srcdoc = ''; // Limpa para parar vídeos/áudios
+            if (iframe) iframe.srcdoc = ''; // Limpa para parar vídeos/áudios invisíveis
             document.getElementById('fullscreenOverlay').style.display = 'none';
             currentSiteIndex = -1; renderSites();
         }
