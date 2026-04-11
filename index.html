@@ -40,7 +40,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent; /* Remove pisca-pisca azul no clique do celular */
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -51,7 +51,6 @@
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
             padding-top: 90px;
-            /* Espaço extra na base para que a grid não fique escondida atrás da toolbar */
             padding-bottom: 160px; 
         }
 
@@ -128,7 +127,7 @@
             flex-wrap: wrap;
         }
 
-        /* BARRA DE FERRAMENTAS FIXA NA BASE (Z-INDEX ALTO PARA CLIQUE FUNCIONAR) */
+        /* BARRA DE FERRAMENTAS FIXA NA BASE */
         .toolbar {
             position: fixed;
             bottom: 0;
@@ -137,7 +136,7 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            z-index: 2000; /* Z-index super alto para garantir o clique */
+            z-index: 2000;
             padding: 15px 20px;
             padding-bottom: max(15px, env(safe-area-inset-bottom));
             display: flex;
@@ -147,7 +146,7 @@
             align-items: center;
             border-top: 1px solid var(--border-color);
             box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-            pointer-events: auto; /* Garante que recebe toques */
+            pointer-events: auto;
         }
 
         .search-container {
@@ -216,11 +215,11 @@
         .btn-danger { background: var(--danger-bg); color: var(--danger-color); }
         .btn-danger:hover { background: var(--danger-color); color: white; }
 
-        /* BOTÕES FLUTUANTES - NA ESQUERDA PARA CANHOTOS */
+        /* BOTÕES FLUTUANTES (ESQUERDA) */
         .floating-actions {
             position: fixed;
-            bottom: 160px; /* Bem acima da toolbar */
-            left: 20px;    /* ESQUERDA */
+            bottom: 160px;
+            left: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -248,7 +247,19 @@
         }
 
         .fab-add { background: var(--primary-color); }
-        .fab-voice { background: #34c759; }
+        .fab-voice { background: #34c759; transition: all 0.3s ease; }
+
+        /* ANIMAÇÃO DE PULSO DO MICROFONE */
+        @keyframes pulse-record {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255, 59, 48, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+
+        .fab-voice.listening {
+            background: var(--danger-color);
+            animation: pulse-record 1.5s infinite;
+        }
 
         /* MODAIS */
         .modal {
@@ -281,21 +292,19 @@
         .form-group textarea { height: 150px; font-family: "SF Mono", "Courier New", monospace; resize: vertical; }
         .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px; }
 
-        /* TELA CHEIA (IFRAME) - CORREÇÃO ABSOLUTA PARA MOBILE */
+        /* TELA CHEIA (IFRAME) */
         .fullscreen-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff; z-index: 5000;
         }
         
-        /* Iframe parafusado em cima */
         .site-frame {
             position: absolute;
             top: 0; left: 0; width: 100%;
-            height: calc(100% - 60px - env(safe-area-inset-bottom, 0px)); /* Subtrai a altura da barra inferior */
+            height: calc(100% - 60px - env(safe-area-inset-bottom, 0px));
             border: none; background: white; z-index: 1;
         }
 
-        /* Header (Menu) parafusado na parte de BAIXO rigidamente */
         .fullscreen-header {
             position: absolute;
             bottom: 0; left: 0; width: 100%; height: 60px;
@@ -347,7 +356,7 @@
     </div>
 
     <div class="floating-actions">
-        <button class="fab-btn fab-voice" onclick="startVoiceSearch()" title="Pesquisa por voz">🎤</button>
+        <button class="fab-btn fab-voice" id="btnVoice" onclick="startVoiceSearch()" title="Pesquisa por voz">🎤</button>
         <button class="fab-btn fab-add" onclick="openAddSiteModal()" title="Adicionar Site">＋</button>
     </div>
 
@@ -632,7 +641,7 @@
         });
 
         // ==========================================
-        // BUSCA E VOZ (COM TRATAMENTO DE ERROS)
+        // BUSCA E VOZ (COM TRATAMENTO DE ERROS E ANIMAÇÃO)
         // ==========================================
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', function (e) {
@@ -642,36 +651,54 @@
             searchTimeout = setTimeout(() => filterSites(term), 300);
         });
 
-        document.getElementById('clearSearch').addEventListener('click', function () {
+        document.getElementById('clearSearch').addEventListener('click', function (e) {
+            e.preventDefault(); // Impede o navegador de bugar o toque no celular
             const input = document.getElementById('searchInput');
-            input.value = ''; this.style.display = 'none';
-            renderSites(); input.focus();
+            input.value = ''; 
+            this.style.display = 'none';
+            renderSites();
+            input.blur(); // AQUI: Força o teclado do celular a sumir!
         });
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.lang = 'pt-BR'; recognition.interimResults = false; recognition.maxAlternatives = 1;
+
+            recognition.onstart = function() {
+                const btn = document.getElementById('btnVoice');
+                if(btn) btn.classList.add('listening');
+            };
+
             recognition.onresult = function (e) {
                 const transcript = e.results[0][0].transcript.trim();
                 document.getElementById('searchInput').value = transcript;
                 document.getElementById('clearSearch').style.display = 'block';
                 filterSites(transcript);
             };
-            // TRATAMENTO EXPLICITO DE ERRO PRO CELULAR
+
+            recognition.onend = function() {
+                const btn = document.getElementById('btnVoice');
+                if(btn) btn.classList.remove('listening');
+            };
+
             recognition.onerror = function(event) {
+                const btn = document.getElementById('btnVoice');
+                if(btn) btn.classList.remove('listening');
+                
                 let msg = 'Erro no microfone: ' + event.error;
                 if(event.error === 'not-allowed') {
                     msg = 'Acesso ao microfone negado.\n\nNo celular, o navegador EXIGE que o site esteja rodando em uma conexão segura (HTTPS / cadeado) para usar voz.';
                 }
                 alert(msg);
             };
-            function startVoiceSearch() { 
+
+            window.startVoiceSearch = function() { 
                 try { recognition.start(); } 
-                catch(e) { alert("Microfone já está em uso ou bloqueado pelo celular."); }
+                catch(e) { console.log("Microfone já está em uso."); }
             }
         } else {
-            function startVoiceSearch() { alert('A busca por voz não é suportada neste navegador de celular, ou requer conexão segura (HTTPS).'); }
+            window.startVoiceSearch = function() { alert('A busca por voz não é suportada neste navegador de celular, ou requer conexão segura (HTTPS).'); }
         }
 
         // ==========================================
