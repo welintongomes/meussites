@@ -14,24 +14,24 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Sites Manager">
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <style>
         /* Design Clean Apple-like */
         :root {
-            --bg-color: #f5f5f7; /* Fundo cinza bem claro da Apple */
-            --text-color: #1d1d1f; /* Texto escuro suave */
+            --bg-color: #f5f5f7;
+            --text-color: #1d1d1f;
             --card-bg: #ffffff;
-            --primary-color: #0071e3; /* Azul Apple */
+            --primary-color: #0071e3;
             --primary-hover: #0077ed;
             --secondary-bg: #e8e8ed;
             --secondary-hover: #d2d2d7;
-            --danger-color: #ff3b30; /* Vermelho Apple */
+            --danger-color: #ff3b30;
             --danger-bg: rgba(255, 59, 48, 0.1);
             --border-color: #d2d2d7;
-            --shadow-soft: 0 4px 6px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.08);
-            --shadow-hover: 0 10px 20px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+            --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 10px 20px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
             --radius: 18px;
             --btn-radius: 12px;
             --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -50,57 +50,66 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
+            /* Garante que o scroll nativo não fique escondido sob barras fixas */
+            padding-top: 90px;
+            padding-bottom: 140px;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
+        /* CABEÇALHO FIXO NO TOPO */
         .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(245, 245, 247, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 15px 20px;
             text-align: center;
-            /* margin-bottom: 30px; */
+            border-bottom: 1px solid var(--border-color);
         }
 
         .header h1 {
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: 700;
             letter-spacing: -0.5px;
             color: var(--text-color);
         }
 
-        .header p {
-            font-size: 1.1em;
-            color: #86868b;
-            margin-top: 5px;
-        }
-
+        /* BARRA DE PESQUISA FIXA EMBAIXO */
         .toolbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 15px 20px;
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+            /* Proteção para iPhones */
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
+            gap: 10px;
+            justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            background: var(--card-bg);
-            padding: 15px 25px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-soft);
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
         }
 
         .search-container {
             position: relative;
-            flex: 1;
-            min-width: 250px;
-            max-width: 400px;
+            flex: 1 1 100%;
+            /* Ocupa linha inteira no mobile */
         }
 
         #searchInput {
             width: 100%;
             padding: 12px 40px 12px 15px;
             border-radius: var(--btn-radius);
-            border: 1px solid transparent;
+            border: 1px solid var(--border-color);
             background: var(--secondary-bg);
             color: var(--text-color);
             font-size: 16px;
@@ -125,23 +134,27 @@
             color: #86868b;
             cursor: pointer;
             display: none;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
+            padding: 5px;
         }
 
-.sites-grid {
-    overflow: scroll;
-    max-height: 550px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 20px;
-    padding-bottom: 10px;
-}
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0px 19px 0px 19px;
+        }
+
+        .sites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
 
         .site-card {
             background: var(--card-bg);
             border-radius: var(--radius);
-            padding: 24px;
+            padding: 24px 13px 24px 48px;
             border: 1px solid var(--border-color);
             box-shadow: var(--shadow-soft);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -172,8 +185,9 @@
 
         .site-actions {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 5px;
+            flex-wrap: nowrap;
+            align-items: stretch;
         }
 
         /* Estilos de Botões Universais */
@@ -220,15 +234,17 @@
             color: white;
         }
 
-        /* Botões Flutuantes (Mobile & Desktop) */
+        /* Botões Flutuantes - POSICIONADOS NA ESQUERDA PARA USO CANHOTO */
         .floating-actions {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 150px;
+            /* Acima da toolbar */
+            left: 7px;
+            /* ESQUERDA */
             display: flex;
             flex-direction: column;
             gap: 15px;
-            z-index: 1000;
+            z-index: 900;
         }
 
         .fab-btn {
@@ -239,7 +255,7 @@
             color: white;
             font-size: 24px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -248,17 +264,25 @@
 
         .fab-btn:hover {
             transform: scale(1.08);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
-        .fab-add { background: var(--primary-color); }
-        .fab-voice { background: #34c759; /* Verde Apple */ }
+        .fab-add {
+            background: var(--primary-color);
+        }
+
+        .fab-voice {
+            background: #34c759;
+        }
 
         /* Modais */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
@@ -267,7 +291,8 @@
 
         .modal-content {
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
             background: var(--card-bg);
             padding: 30px;
@@ -276,7 +301,7 @@
             max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
 
         .modal-content h2 {
@@ -285,7 +310,9 @@
             color: var(--text-color);
         }
 
-        .form-group { margin-bottom: 20px; }
+        .form-group {
+            margin-bottom: 20px;
+        }
 
         .form-group label {
             display: block;
@@ -295,7 +322,8 @@
             font-size: 14px;
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input,
+        .form-group textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid var(--border-color);
@@ -306,7 +334,8 @@
             background: #fafafa;
         }
 
-        .form-group input:focus, .form-group textarea:focus {
+        .form-group input:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: var(--primary-color);
             background: #fff;
@@ -330,25 +359,43 @@
         .fullscreen-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: #fff;
             z-index: 9999;
         }
 
+        /* Flex column coloca o iframe no topo (flex:1) e o header naturalmente na base */
         .fullscreen-content {
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
+        .site-frame {
+            flex: 1;
+            border: none;
+            background: white;
+            width: 100%;
+        }
+
+        /* HEADER DO SITE ABERTO - AGORA NA PARTE DE BAIXO */
         .fullscreen-header {
-            background: rgba(245, 245, 247, 0.9);
+            background: rgba(245, 245, 247, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            padding: 10px 20px;
+            padding: 12px 20px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            /* Notch do iPhone */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-color);
+            /* Borda agora em cima */
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
         }
 
         .fullscreen-header h2 {
@@ -363,54 +410,49 @@
             text-align: center;
         }
 
-        .site-frame { flex: 1; border: none; background: white; }
-
         #offlineIndicator {
             border-radius: 20px;
             font-size: 12px;
             padding: 4px 12px;
-            background: #ff9f0a; /* Laranja Apple */
+            background: #ff9f0a;
             color: white;
             font-weight: 600;
-            display: inline-block;
-            margin-top: 10px;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         @media (max-width: 768px) {
-            .container { padding: 20px 15px; }
-            .header h1 { font-size: 2em; }
-            .toolbar { display: flex; flex-direction: row-reverse; padding: 15px 15px 15px 70px; justify-content: space-between; }
-            .search-container { max-width: 100%; }
-            .toolbar .btn { width: 47%; justify-content: center; }
-            
-            .floating-actions {
-                bottom: 20px;
-                left: 20px;
+            .toolbar .btn {
+                flex: 1;
+                justify-content: center;
             }
         }
     </style>
 </head>
 
 <body>
+    <div class="header">
+        <h1>Ferramentas</h1>
+        <div id="offlineIndicator" style="display: none;">📱 Offline</div>
+    </div>
+
     <div class="container">
-        <div class="header">
-            <h1>Ferramentas</h1>
-            <div id="offlineIndicator" style="display: none;">📱 Modo Offline</div>
-        </div>
-
-        
-
         <div class="sites-grid" id="sitesGrid">
-            </div>
-            <div class="toolbar">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Pesquisar ferramentas...">
-                <button id="clearSearch">×</button>
-            </div>
-            <button class="btn btn-secondary" onclick="openExportModal()">💾 Salvar Tudo</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('importFileMaster').click()">📂 Importar</button>
-            <input type="file" id="importFileMaster" accept=".json, .zip" style="display: none;" onchange="handleUniversalImport(event)">
         </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Pesquisar ferramentas...">
+            <button id="clearSearch">×</button>
+        </div>
+        <button class="btn btn-secondary" onclick="openExportModal()">💾 Salvar Tudo</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('importFileMaster').click()">📂
+            Importar</button>
+        <input type="file" id="importFileMaster" accept=".json, .zip" style="display: none;"
+            onchange="handleUniversalImport(event)">
     </div>
 
     <div class="floating-actions">
@@ -436,7 +478,8 @@
             <p style="color: #555; margin-bottom: 25px;">Escolha em qual formato deseja baixar este site.</p>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <button class="btn btn-primary" onclick="executeExportSingle('html')">🌐 Baixar página (HTML)</button>
-                <button class="btn btn-secondary" onclick="executeExportSingle('zip')">🗜️ Baixar compactado (ZIP)</button>
+                <button class="btn btn-secondary" onclick="executeExportSingle('zip')">🗜️ Baixar compactado
+                    (ZIP)</button>
                 <button class="btn btn-secondary" onclick="executeExportSingle('json')">📦 Baixar dados (JSON)</button>
                 <button class="btn btn-danger" onclick="closeExportSingleModal()">Cancelar</button>
             </div>
@@ -469,31 +512,30 @@
 
     <div class="fullscreen-overlay" id="fullscreenOverlay">
         <div class="fullscreen-content">
+            <iframe class="site-frame" id="siteFrame" srcdoc=""></iframe>
+
             <div class="fullscreen-header">
                 <button class="btn btn-danger" onclick="closeFullscreen()">Fechar</button>
                 <h2 id="fullscreenTitle">Ferramenta</h2>
                 <button class="btn btn-secondary" onclick="editCurrentSite()">Editar</button>
             </div>
-            <iframe class="site-frame" id="siteFrame" srcdoc=""></iframe>
         </div>
     </div>
-    
+
     <script>
         // ==========================================
-        // BANCO DE DADOS (IndexedDB)
+        // BANCO DE DADOS (IndexedDB) E LÓGICA V8
         // ==========================================
         const DB_NAME = 'MeusSitesDB';
         const DB_VERSION = 1;
         const STORE_NAME = 'sites';
 
         let currentPage = 0;
-        const ITEMS_PER_PAGE = 8;
+        const ITEMS_PER_PAGE = 12;
         let sites = [];
         let currentSiteIndex = -1;
         let editingIndex = -1;
         let lastOpenedSiteIndex = -1;
-        
-        // Controle para o novo modal de exportar um único site
         let siteToExportIndex = -1;
 
         async function initDB() {
@@ -510,6 +552,9 @@
             });
         }
 
+        // Função crucial de indexação de texto para a pesquisa de 12k itens
+        function normalizeText(t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
         async function loadSites() {
             try {
                 const db = await initDB();
@@ -520,13 +565,18 @@
                 request.onsuccess = () => {
                     if (request.result.length > 0) {
                         sites = request.result.map(item => ({
-                            name: item.name, description: item.description, code: item.code
+                            name: item.name,
+                            description: item.description,
+                            code: item.code,
+                            // OTIMIZAÇÃO: Cache de busca na memória
+                            _searchIndex: normalizeText(`${item.name} ${item.description || ''}`)
                         }));
                     } else {
                         sites = [{
                             name: "Meu Primeiro App",
                             description: "Exemplo de site salvo localmente",
-                            code: `<!DOCTYPE html><html lang="pt-BR"><body style="font-family:sans-serif; text-align:center; padding:50px;"><h1>Olá!</h1><p>Esta é uma ferramenta de teste.</p></body></html>`
+                            code: `<!DOCTYPE html><html lang="pt-BR"><body style="font-family:sans-serif; text-align:center; padding:50px;"><h1>Olá!</h1><p>Esta é uma ferramenta de teste.</p></body></html>`,
+                            _searchIndex: normalizeText("Meu Primeiro App Exemplo de site salvo localmente")
                         }];
                         saveSites();
                     }
@@ -543,9 +593,14 @@
                 renderSites();
             }
         }
-        
+
         async function saveSites() {
             try {
+                // Atualiza o cache antes de gravar
+                sites.forEach(site => {
+                    site._searchIndex = normalizeText(`${site.name} ${site.description || ''}`);
+                });
+
                 const db = await initDB();
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
@@ -555,7 +610,7 @@
         }
 
         // ==========================================
-        // INTERFACE E RENDERIZAÇÃO
+        // INTERFACE E RENDERIZAÇÃO Paginada
         // ==========================================
         function renderSites(append = false) {
             const grid = document.getElementById('sitesGrid');
@@ -593,7 +648,7 @@
                 const loadBtn = document.createElement('button');
                 loadBtn.className = 'btn btn-secondary';
                 loadBtn.textContent = `Carregar mais (${sitesToRender.length - end} restantes)`;
-                loadBtn.style.cssText = 'width:100%; grid-column: 1/-1; padding: 15px; margin-top: 10px;';
+                loadBtn.style.cssText = 'width:100%; grid-column: 1/-1; padding: 15px; margin-top: 10px; border: 1px solid var(--border-color);';
                 loadBtn.onclick = () => {
                     currentPage++; loadBtn.remove(); renderSites(true);
                 };
@@ -604,16 +659,10 @@
         function filterSites(searchTerm) {
             if (!searchTerm.trim()) { renderSites(); return; }
             const searchWords = searchTerm.trim().split(/\s+/).map(word => normalizeText(word));
-            
+
+            // BUSCA ULTRARRÁPIDA
             const filteredSites = sites.filter(site => {
-                const normalizedName = normalizeText(site.name);
-                const normalizedDesc = site.description ? normalizeText(site.description) : '';
-                if (searchWords.length === 1) {
-                    return normalizedName.includes(searchWords[0]) || normalizedDesc.includes(searchWords[0]);
-                } else {
-                    return searchWords.every(word => normalizedName.includes(word)) || 
-                           searchWords.every(word => normalizedDesc.includes(word));
-                }
+                return searchWords.every(word => site._searchIndex.includes(word));
             });
 
             const grid = document.getElementById('sitesGrid');
@@ -622,8 +671,9 @@
                 grid.innerHTML = '<p style="text-align: center; color: #86868b; grid-column: 1/-1; padding: 40px;">Nenhuma ferramenta encontrada.</p>';
                 return;
             }
-            
-            let sitesToRender = filteredSites.slice().reverse();
+
+            let sitesToRender = filteredSites.slice().reverse().slice(0, 50); // Trava visualização na pesquisa pesada
+
             sitesToRender.forEach((site) => {
                 const originalIndex = sites.indexOf(site);
                 const card = document.createElement('div');
@@ -640,6 +690,10 @@
                 `;
                 grid.appendChild(card);
             });
+
+            if (filteredSites.length > 50) {
+                grid.innerHTML += `<p style="text-align: center; color: #86868b; grid-column: 1/-1; padding: 10px;">Mostrando os 50 primeiros resultados. Seja mais específico na busca.</p>`;
+            }
         }
 
         // ==========================================
@@ -655,7 +709,7 @@
         }
 
         function closeFullscreen() {
-            document.getElementById('siteFrame').srcdoc = '';
+            document.getElementById('siteFrame').srcdoc = ''; // LIMPA O IFRAME = ZERO CONSUMO
             document.getElementById('fullscreenOverlay').style.display = 'none';
             currentSiteIndex = -1; renderSites();
         }
@@ -684,7 +738,7 @@
             if (index < 0 || index >= sites.length) return;
             if (confirm(`Excluir "${sites[index].name}" permanentemente?`)) {
                 sites.splice(index, 1);
-                if (lastOpenedSiteIndex === index) { lastOpenedSiteIndex = -1; localStorage.removeItem('lastOpenedSiteIndex'); } 
+                if (lastOpenedSiteIndex === index) { lastOpenedSiteIndex = -1; localStorage.removeItem('lastOpenedSiteIndex'); }
                 else if (lastOpenedSiteIndex > index) { lastOpenedSiteIndex--; localStorage.setItem('lastOpenedSiteIndex', lastOpenedSiteIndex.toString()); }
                 saveSites(); renderSites();
             }
@@ -707,12 +761,11 @@
                 description: document.getElementById('siteDescription').value,
                 code: document.getElementById('siteCode').value
             };
-            if (editingIndex >= 0) sites[editingIndex] = siteData; 
+            if (editingIndex >= 0) sites[editingIndex] = siteData;
             else sites.push(siteData);
             saveSites(); renderSites(); closeSiteModal();
         });
 
-        // Fechar modais ao clicar fora
         window.addEventListener('click', function (e) {
             if (e.target.classList.contains('modal')) e.target.style.display = 'none';
         });
@@ -750,17 +803,17 @@
         }
 
         // ==========================================
-        // EXPORTAÇÃO E IMPORTAÇÃO (Lógica Limpa)
+        // EXPORTAÇÃO E IMPORTAÇÃO
         // ==========================================
-        function normalizeText(t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
         function sanitizeFilename(name) { return name.replace(/[^a-z0-9]/gi, '_').toLowerCase(); }
 
-        // --- Exportar Tudo ---
         function openExportModal() { document.getElementById('exportModal').style.display = 'block'; }
         function closeExportModal() { document.getElementById('exportModal').style.display = 'none'; }
 
         function exportSitesJSON() {
-            const blob = new Blob([JSON.stringify(sites, null, 2)], { type: 'application/json' });
+            // Remove o cache antes de exportar
+            const exportData = sites.map(({ _searchIndex, ...rest }) => rest);
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = 'backup_ferramentas.json'; link.click();
@@ -770,9 +823,10 @@
         function exportSitesZip() {
             if (typeof JSZip === 'undefined') { alert('Erro: Biblioteca ZIP não carregada.'); return; }
             const zip = new JSZip();
-            zip.file("sites_backup.json", JSON.stringify(sites, null, 2));
+            const exportData = sites.map(({ _searchIndex, ...rest }) => rest);
+            zip.file("sites_backup.json", JSON.stringify(exportData, null, 2));
             sites.forEach(site => zip.file(`${sanitizeFilename(site.name)}.html`, site.code));
-            
+
             zip.generateAsync({ type: "blob" }).then(content => {
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(content);
@@ -781,7 +835,6 @@
             closeExportModal();
         }
 
-        // --- NOVO: Exportar Um Único Site (HTML, JSON, ZIP) ---
         function openExportSingleModal(index) {
             siteToExportIndex = index;
             document.getElementById('exportSingleModal').style.display = 'block';
@@ -793,8 +846,8 @@
 
         function executeExportSingle(format) {
             if (siteToExportIndex < 0 || siteToExportIndex >= sites.length) return;
-            
             const site = sites[siteToExportIndex];
+            const { _searchIndex, ...cleanSite } = site;
             const safeName = sanitizeFilename(site.name);
             const link = document.createElement('a');
 
@@ -803,19 +856,18 @@
                 link.href = URL.createObjectURL(blob);
                 link.download = `${safeName}.html`;
                 link.click();
-            } 
+            }
             else if (format === 'json') {
-                // Exporta como array para ser compatível com a importação depois
-                const blob = new Blob([JSON.stringify([site], null, 2)], { type: 'application/json' });
+                const blob = new Blob([JSON.stringify([cleanSite], null, 2)], { type: 'application/json' });
                 link.href = URL.createObjectURL(blob);
                 link.download = `${safeName}.json`;
                 link.click();
-            } 
+            }
             else if (format === 'zip') {
                 if (typeof JSZip === 'undefined') { alert('Erro: ZIP não carregado.'); return; }
                 const zip = new JSZip();
                 zip.file(`${safeName}.html`, site.code);
-                zip.file(`${safeName}_backup.json`, JSON.stringify([site], null, 2));
+                zip.file(`${safeName}_backup.json`, JSON.stringify([cleanSite], null, 2));
                 zip.generateAsync({ type: "blob" }).then(content => {
                     link.href = URL.createObjectURL(content);
                     link.download = `${safeName}.zip`;
@@ -825,7 +877,6 @@
             closeExportSingleModal();
         }
 
-        // --- Importação Universal (ZIP ou JSON) ---
         function handleUniversalImport(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -834,8 +885,7 @@
             if (ext === 'json') processJSONImport(file);
             else if (ext === 'zip') processZIPImport(file);
             else alert("Formato inválido. Use .zip ou .json");
-            
-            event.target.value = ''; // Reset input
+            event.target.value = '';
         }
 
         function processJSONImport(file) {
@@ -867,7 +917,7 @@
                     if (Array.isArray(imported)) {
                         let msg = imported.length === 1 ? `Backup de "${imported[0].name}" encontrado. Importar?` : 'Backup completo encontrado. Substituir tudo?';
                         if (confirm(msg)) {
-                            if(imported.length === 1) sites = sites.concat(imported);
+                            if (imported.length === 1) sites = sites.concat(imported);
                             else sites = imported;
                             saveSites(); renderSites(); alert('Importado com sucesso!');
                         }
@@ -895,19 +945,19 @@
                 navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Erro:', err));
             });
         }
-        
+
         function updateOnlineStatus() {
             const ind = document.getElementById('offlineIndicator');
-            ind.style.display = navigator.onLine ? 'none' : 'inline-block';
+            ind.style.display = navigator.onLine ? 'none' : 'block';
         }
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
-        
-        // Iniciar
+
         window.addEventListener('load', () => {
             updateOnlineStatus();
             loadSites();
         });
     </script>
 </body>
+
 </html>
