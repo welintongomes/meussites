@@ -3,13 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gerenciador de Ferramentas</title>
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='8' fill='%230071e3'/%3E%3Cpath d='M16 16h16v4H16zM16 24h16v4H16zM16 32h12v4H16z' fill='white'/%3E%3C/svg%3E">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f5f5f7">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -41,6 +40,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Remove pisca-pisca azul no clique do celular */
         }
 
         body {
@@ -50,9 +50,9 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
-            /* Garante que o scroll nativo não fique escondido sob barras fixas */
             padding-top: 90px;
-            padding-bottom: 140px;
+            /* Espaço extra na base para que a grid não fique escondida atrás da toolbar */
+            padding-bottom: 160px; 
         }
 
         /* CABEÇALHO FIXO NO TOPO */
@@ -77,72 +77,11 @@
             color: var(--text-color);
         }
 
-        /* BARRA DE PESQUISA FIXA EMBAIXO */
-        .toolbar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 1000;
-            padding: 15px 20px;
-            padding-bottom: max(15px, env(safe-area-inset-bottom));
-            /* Proteção para iPhones */
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid var(--border-color);
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .search-container {
-            position: relative;
-            flex: 1 1 100%;
-            /* Ocupa linha inteira no mobile */
-        }
-
-        #searchInput {
-            width: 100%;
-            padding: 12px 40px 12px 15px;
-            border-radius: var(--btn-radius);
-            border: 1px solid var(--border-color);
-            background: var(--secondary-bg);
-            color: var(--text-color);
-            font-size: 16px;
-            font-family: var(--font-family);
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        #searchInput:focus {
-            background: var(--card-bg);
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
-        }
-
-        #clearSearch {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #86868b;
-            cursor: pointer;
-            display: none;
-            font-size: 24px;
-            font-weight: bold;
-            padding: 5px;
-        }
-
+        /* GRID PRINCIPAL */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0px 19px 0px 19px;
+            padding: 0 20px;
         }
 
         .sites-grid {
@@ -154,7 +93,7 @@
         .site-card {
             background: var(--card-bg);
             border-radius: var(--radius);
-            padding: 24px 13px 24px 48px;
+            padding: 24px;
             border: 1px solid var(--border-color);
             box-shadow: var(--shadow-soft);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -185,12 +124,74 @@
 
         .site-actions {
             display: flex;
-            gap: 5px;
-            flex-wrap: nowrap;
-            align-items: stretch;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        /* Estilos de Botões Universais */
+        /* BARRA DE FERRAMENTAS FIXA NA BASE (Z-INDEX ALTO PARA CLIQUE FUNCIONAR) */
+        .toolbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 2000; /* Z-index super alto para garantir o clique */
+            padding: 15px 20px;
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            pointer-events: auto; /* Garante que recebe toques */
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1 1 100%; 
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border-radius: var(--btn-radius);
+            border: 1px solid var(--border-color);
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            font-family: var(--font-family);
+            outline: none;
+            transition: all 0.2s ease;
+            -webkit-user-select: auto;
+            user-select: auto;
+        }
+
+        #searchInput:focus {
+            background: var(--card-bg);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+        }
+
+        #clearSearch {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #86868b;
+            cursor: pointer;
+            display: none;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 5px;
+        }
+
+        /* BOTÕES */
         .btn {
             padding: 10px 18px;
             border-radius: var(--btn-radius);
@@ -206,45 +207,24 @@
             text-decoration: none;
         }
 
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-        }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
 
-        .btn-primary:hover {
-            background: var(--primary-hover);
-        }
+        .btn-secondary { background: var(--secondary-bg); color: var(--text-color); }
+        .btn-secondary:hover { background: var(--secondary-hover); }
 
-        .btn-secondary {
-            background: var(--secondary-bg);
-            color: var(--text-color);
-        }
+        .btn-danger { background: var(--danger-bg); color: var(--danger-color); }
+        .btn-danger:hover { background: var(--danger-color); color: white; }
 
-        .btn-secondary:hover {
-            background: var(--secondary-hover);
-        }
-
-        .btn-danger {
-            background: var(--danger-bg);
-            color: var(--danger-color);
-        }
-
-        .btn-danger:hover {
-            background: var(--danger-color);
-            color: white;
-        }
-
-        /* Botões Flutuantes - POSICIONADOS NA ESQUERDA PARA USO CANHOTO */
+        /* BOTÕES FLUTUANTES - NA ESQUERDA PARA CANHOTOS */
         .floating-actions {
             position: fixed;
-            bottom: 150px;
-            /* Acima da toolbar */
-            left: 7px;
-            /* ESQUERDA */
+            bottom: 160px; /* Bem acima da toolbar */
+            left: 20px;    /* ESQUERDA */
             display: flex;
             flex-direction: column;
             gap: 15px;
-            z-index: 900;
+            z-index: 1500;
         }
 
         .fab-btn {
@@ -267,167 +247,80 @@
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
-        .fab-add {
-            background: var(--primary-color);
-        }
+        .fab-add { background: var(--primary-color); }
+        .fab-voice { background: #34c759; }
 
-        .fab-voice {
-            background: #34c759;
-        }
-
-        /* Modais */
+        /* MODAIS */
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
-            z-index: 3000;
+            z-index: 4000;
         }
 
         .modal-content {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--card-bg); padding: 30px; border-radius: 20px;
+            width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
 
-        .modal-content h2 {
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--text-color);
+        .modal-content h2 { font-weight: 600; margin-bottom: 20px; color: var(--text-color); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 14px; }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 12px; border: 1px solid var(--border-color);
+            border-radius: var(--btn-radius); font-size: 15px; font-family: var(--font-family);
+            background: #fafafa; outline: none;
         }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary-color); background: #fff; box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1); }
+        .form-group textarea { height: 150px; font-family: "SF Mono", "Courier New", monospace; resize: vertical; }
+        .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px; }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-            font-size: 14px;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--btn-radius);
-            font-size: 15px;
-            font-family: var(--font-family);
-            transition: border-color 0.2s ease;
-            background: #fafafa;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
-        }
-
-        .form-group textarea {
-            height: 150px;
-            font-family: "SF Mono", "Courier New", monospace;
-            resize: vertical;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 30px;
-        }
-
-        /* Fullscreen Overlay (Iframe) */
+        /* TELA CHEIA (IFRAME) - CORREÇÃO ABSOLUTA PARA MOBILE */
         .fullscreen-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            z-index: 9999;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 5000;
         }
-
-        /* Flex column coloca o iframe no topo (flex:1) e o header naturalmente na base */
-        .fullscreen-content {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
+        
+        /* Iframe parafusado em cima */
         .site-frame {
-            flex: 1;
-            border: none;
-            background: white;
-            width: 100%;
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            height: calc(100% - 60px - env(safe-area-inset-bottom, 0px)); /* Subtrai a altura da barra inferior */
+            border: none; background: white; z-index: 1;
         }
 
-        /* HEADER DO SITE ABERTO - AGORA NA PARTE DE BAIXO */
+        /* Header (Menu) parafusado na parte de BAIXO rigidamente */
         .fullscreen-header {
-            background: rgba(245, 245, 247, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 12px 20px;
-            padding-bottom: max(12px, env(safe-area-inset-bottom));
-            /* Notch do iPhone */
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 60px;
+            background: rgba(245, 245, 247, 0.95); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+            padding: 0 20px;
+            padding-bottom: env(safe-area-inset-bottom);
+            display: flex; justify-content: space-between; align-items: center; 
             border-top: 1px solid var(--border-color);
-            /* Borda agora em cima */
-            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 10;
         }
-
+        
         .fullscreen-header h2 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-color);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin: 0 15px;
-            flex: 1;
-            text-align: center;
+            font-size: 16px; font-weight: 600; color: var(--text-color); white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; margin: 0 15px; flex: 1; text-align: center;
         }
 
         #offlineIndicator {
-            border-radius: 20px;
-            font-size: 12px;
-            padding: 4px 12px;
-            background: #ff9f0a;
-            color: white;
-            font-weight: 600;
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+            border-radius: 20px; font-size: 12px; padding: 4px 12px;
+            background: #ff9f0a; color: white; font-weight: 600;
+            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
         }
 
         @media (max-width: 768px) {
-            .toolbar .btn {
-                flex: 1;
-                justify-content: center;
-            }
+            .toolbar .btn { flex: 1; justify-content: center; }
         }
     </style>
 </head>
@@ -440,7 +333,7 @@
 
     <div class="container">
         <div class="sites-grid" id="sitesGrid">
-        </div>
+            </div>
     </div>
 
     <div class="toolbar">
@@ -449,10 +342,8 @@
             <button id="clearSearch">×</button>
         </div>
         <button class="btn btn-secondary" onclick="openExportModal()">💾 Salvar Tudo</button>
-        <button class="btn btn-secondary" onclick="document.getElementById('importFileMaster').click()">📂
-            Importar</button>
-        <input type="file" id="importFileMaster" accept=".json, .zip" style="display: none;"
-            onchange="handleUniversalImport(event)">
+        <button class="btn btn-secondary" onclick="document.getElementById('importFileMaster').click()">📂 Importar</button>
+        <input type="file" id="importFileMaster" accept=".json, .zip" style="display: none;" onchange="handleUniversalImport(event)">
     </div>
 
     <div class="floating-actions">
@@ -463,7 +354,6 @@
     <div class="modal" id="exportModal">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <h2>Como deseja salvar tudo?</h2>
-            <p style="color: #555; margin-bottom: 25px;">Escolha o formato para o backup completo.</p>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <button class="btn btn-primary" onclick="exportSitesZip()">📦 Salvar como ZIP (Recomendado)</button>
                 <button class="btn btn-secondary" onclick="exportSitesJSON()">📄 Salvar como JSON</button>
@@ -475,11 +365,9 @@
     <div class="modal" id="exportSingleModal">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <h2>Salvar Ferramenta</h2>
-            <p style="color: #555; margin-bottom: 25px;">Escolha em qual formato deseja baixar este site.</p>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <button class="btn btn-primary" onclick="executeExportSingle('html')">🌐 Baixar página (HTML)</button>
-                <button class="btn btn-secondary" onclick="executeExportSingle('zip')">🗜️ Baixar compactado
-                    (ZIP)</button>
+                <button class="btn btn-secondary" onclick="executeExportSingle('zip')">🗜️ Baixar compactado (ZIP)</button>
                 <button class="btn btn-secondary" onclick="executeExportSingle('json')">📦 Baixar dados (JSON)</button>
                 <button class="btn btn-danger" onclick="closeExportSingleModal()">Cancelar</button>
             </div>
@@ -511,20 +399,17 @@
     </div>
 
     <div class="fullscreen-overlay" id="fullscreenOverlay">
-        <div class="fullscreen-content">
-            <iframe class="site-frame" id="siteFrame" srcdoc=""></iframe>
-
-            <div class="fullscreen-header">
-                <button class="btn btn-danger" onclick="closeFullscreen()">Fechar</button>
-                <h2 id="fullscreenTitle">Ferramenta</h2>
-                <button class="btn btn-secondary" onclick="editCurrentSite()">Editar</button>
-            </div>
+        <iframe class="site-frame" id="siteFrame" srcdoc=""></iframe>
+        <div class="fullscreen-header">
+            <button class="btn btn-danger" onclick="closeFullscreen()">Fechar</button>
+            <h2 id="fullscreenTitle">Ferramenta</h2>
+            <button class="btn btn-secondary" onclick="editCurrentSite()">Editar</button>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // BANCO DE DADOS (IndexedDB) E LÓGICA V8
+        // BANCO DE DADOS (IndexedDB)
         // ==========================================
         const DB_NAME = 'MeusSitesDB';
         const DB_VERSION = 1;
@@ -552,7 +437,6 @@
             });
         }
 
-        // Função crucial de indexação de texto para a pesquisa de 12k itens
         function normalizeText(t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 
         async function loadSites() {
@@ -565,18 +449,15 @@
                 request.onsuccess = () => {
                     if (request.result.length > 0) {
                         sites = request.result.map(item => ({
-                            name: item.name,
-                            description: item.description,
-                            code: item.code,
-                            // OTIMIZAÇÃO: Cache de busca na memória
+                            name: item.name, description: item.description, code: item.code,
                             _searchIndex: normalizeText(`${item.name} ${item.description || ''}`)
                         }));
                     } else {
                         sites = [{
-                            name: "Meu Primeiro App",
-                            description: "Exemplo de site salvo localmente",
-                            code: `<!DOCTYPE html><html lang="pt-BR"><body style="font-family:sans-serif; text-align:center; padding:50px;"><h1>Olá!</h1><p>Esta é uma ferramenta de teste.</p></body></html>`,
-                            _searchIndex: normalizeText("Meu Primeiro App Exemplo de site salvo localmente")
+                            name: "App Exemplo",
+                            description: "Exemplo inicial",
+                            code: `<!DOCTYPE html><html lang="pt-BR"><body style="font-family:sans-serif; text-align:center; padding:50px;"><h1>Olá!</h1></body></html>`,
+                            _searchIndex: normalizeText("App Exemplo Exemplo inicial")
                         }];
                         saveSites();
                     }
@@ -588,29 +469,22 @@
                     }
                     renderSites();
                 };
-            } catch (error) {
-                console.error('Erro ao carregar sites:', error);
-                renderSites();
-            }
+            } catch (error) { renderSites(); }
         }
 
         async function saveSites() {
             try {
-                // Atualiza o cache antes de gravar
-                sites.forEach(site => {
-                    site._searchIndex = normalizeText(`${site.name} ${site.description || ''}`);
-                });
-
+                sites.forEach(site => { site._searchIndex = normalizeText(`${site.name} ${site.description || ''}`); });
                 const db = await initDB();
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
                 const clearRequest = store.clear();
                 clearRequest.onsuccess = () => { sites.forEach(site => store.add(site)); };
-            } catch (error) { console.error('Erro ao salvar sites:', error); }
+            } catch (error) {}
         }
 
         // ==========================================
-        // INTERFACE E RENDERIZAÇÃO Paginada
+        // RENDERIZAÇÃO
         // ==========================================
         function renderSites(append = false) {
             const grid = document.getElementById('sitesGrid');
@@ -647,11 +521,9 @@
             if (end < sitesToRender.length) {
                 const loadBtn = document.createElement('button');
                 loadBtn.className = 'btn btn-secondary';
-                loadBtn.textContent = `Carregar mais (${sitesToRender.length - end} restantes)`;
+                loadBtn.textContent = `Carregar mais (${sitesToRender.length - end})`;
                 loadBtn.style.cssText = 'width:100%; grid-column: 1/-1; padding: 15px; margin-top: 10px; border: 1px solid var(--border-color);';
-                loadBtn.onclick = () => {
-                    currentPage++; loadBtn.remove(); renderSites(true);
-                };
+                loadBtn.onclick = () => { currentPage++; loadBtn.remove(); renderSites(true); };
                 grid.appendChild(loadBtn);
             }
         }
@@ -659,21 +531,16 @@
         function filterSites(searchTerm) {
             if (!searchTerm.trim()) { renderSites(); return; }
             const searchWords = searchTerm.trim().split(/\s+/).map(word => normalizeText(word));
-
-            // BUSCA ULTRARRÁPIDA
-            const filteredSites = sites.filter(site => {
-                return searchWords.every(word => site._searchIndex.includes(word));
-            });
+            const filteredSites = sites.filter(site => { return searchWords.every(word => site._searchIndex.includes(word)); });
 
             const grid = document.getElementById('sitesGrid');
             grid.innerHTML = '';
             if (filteredSites.length === 0) {
-                grid.innerHTML = '<p style="text-align: center; color: #86868b; grid-column: 1/-1; padding: 40px;">Nenhuma ferramenta encontrada.</p>';
+                grid.innerHTML = '<p style="text-align: center; color: #86868b; grid-column: 1/-1; padding: 40px;">Nada encontrado.</p>';
                 return;
             }
 
-            let sitesToRender = filteredSites.slice().reverse().slice(0, 50); // Trava visualização na pesquisa pesada
-
+            let sitesToRender = filteredSites.slice().reverse().slice(0, 50); 
             sitesToRender.forEach((site) => {
                 const originalIndex = sites.indexOf(site);
                 const card = document.createElement('div');
@@ -690,14 +557,10 @@
                 `;
                 grid.appendChild(card);
             });
-
-            if (filteredSites.length > 50) {
-                grid.innerHTML += `<p style="text-align: center; color: #86868b; grid-column: 1/-1; padding: 10px;">Mostrando os 50 primeiros resultados. Seja mais específico na busca.</p>`;
-            }
         }
 
         // ==========================================
-        // AÇÕES DOS SITES (Abrir, Add, Edit, Delete)
+        // AÇÕES (Abrir, Add, Edit, Delete)
         // ==========================================
         function openSite(index) {
             currentSiteIndex = index; lastOpenedSiteIndex = index;
@@ -709,7 +572,7 @@
         }
 
         function closeFullscreen() {
-            document.getElementById('siteFrame').srcdoc = ''; // LIMPA O IFRAME = ZERO CONSUMO
+            document.getElementById('siteFrame').srcdoc = ''; 
             document.getElementById('fullscreenOverlay').style.display = 'none';
             currentSiteIndex = -1; renderSites();
         }
@@ -726,26 +589,24 @@
         function editSite(index) {
             if (index < 0 || index >= sites.length) return;
             editingIndex = index;
-            const site = sites[index];
             document.getElementById('modalTitle').textContent = 'Editar Ferramenta';
-            document.getElementById('siteName').value = site.name;
-            document.getElementById('siteDescription').value = site.description || '';
-            document.getElementById('siteCode').value = site.code;
+            document.getElementById('siteName').value = sites[index].name;
+            document.getElementById('siteDescription').value = sites[index].description || '';
+            document.getElementById('siteCode').value = sites[index].code;
             document.getElementById('siteModal').style.display = 'block';
         }
 
         function deleteSite(index) {
-            if (index < 0 || index >= sites.length) return;
-            if (confirm(`Excluir "${sites[index].name}" permanentemente?`)) {
+            if (confirm(`Excluir permanentemente?`)) {
                 sites.splice(index, 1);
                 if (lastOpenedSiteIndex === index) { lastOpenedSiteIndex = -1; localStorage.removeItem('lastOpenedSiteIndex'); }
-                else if (lastOpenedSiteIndex > index) { lastOpenedSiteIndex--; localStorage.setItem('lastOpenedSiteIndex', lastOpenedSiteIndex.toString()); }
+                else if (lastOpenedSiteIndex > index) { lastOpenedSiteIndex--; localStorage.setItem('lastOpenedSiteIndex', lastOpenedSiteIndex); }
                 saveSites(); renderSites();
             }
         }
 
         function editCurrentSite() {
-            if (currentSiteIndex >= 0 && currentSiteIndex < sites.length) {
+            if (currentSiteIndex >= 0) {
                 const idx = currentSiteIndex;
                 closeFullscreen();
                 setTimeout(() => editSite(idx), 100);
@@ -771,7 +632,7 @@
         });
 
         // ==========================================
-        // BUSCA (Texto e Voz)
+        // BUSCA E VOZ (COM TRATAMENTO DE ERROS)
         // ==========================================
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', function (e) {
@@ -797,13 +658,24 @@
                 document.getElementById('clearSearch').style.display = 'block';
                 filterSites(transcript);
             };
-            function startVoiceSearch() { recognition.start(); }
+            // TRATAMENTO EXPLICITO DE ERRO PRO CELULAR
+            recognition.onerror = function(event) {
+                let msg = 'Erro no microfone: ' + event.error;
+                if(event.error === 'not-allowed') {
+                    msg = 'Acesso ao microfone negado.\n\nNo celular, o navegador EXIGE que o site esteja rodando em uma conexão segura (HTTPS / cadeado) para usar voz.';
+                }
+                alert(msg);
+            };
+            function startVoiceSearch() { 
+                try { recognition.start(); } 
+                catch(e) { alert("Microfone já está em uso ou bloqueado pelo celular."); }
+            }
         } else {
-            function startVoiceSearch() { alert('Busca por voz não suportada neste navegador.'); }
+            function startVoiceSearch() { alert('A busca por voz não é suportada neste navegador de celular, ou requer conexão segura (HTTPS).'); }
         }
 
         // ==========================================
-        // EXPORTAÇÃO E IMPORTAÇÃO
+        // EXPORTAR / IMPORTAR
         // ==========================================
         function sanitizeFilename(name) { return name.replace(/[^a-z0-9]/gi, '_').toLowerCase(); }
 
@@ -811,67 +683,53 @@
         function closeExportModal() { document.getElementById('exportModal').style.display = 'none'; }
 
         function exportSitesJSON() {
-            // Remove o cache antes de exportar
-            const exportData = sites.map(({ _searchIndex, ...rest }) => rest);
+            const exportData = sites.map(({_searchIndex, ...rest}) => rest);
             const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
             const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'backup_ferramentas.json'; link.click();
+            link.href = URL.createObjectURL(blob); link.download = 'backup_ferramentas.json'; link.click();
             closeExportModal();
         }
 
         function exportSitesZip() {
-            if (typeof JSZip === 'undefined') { alert('Erro: Biblioteca ZIP não carregada.'); return; }
+            if (typeof JSZip === 'undefined') { alert('Erro: ZIP não carregado.'); return; }
             const zip = new JSZip();
-            const exportData = sites.map(({ _searchIndex, ...rest }) => rest);
+            const exportData = sites.map(({_searchIndex, ...rest}) => rest);
             zip.file("sites_backup.json", JSON.stringify(exportData, null, 2));
             sites.forEach(site => zip.file(`${sanitizeFilename(site.name)}.html`, site.code));
-
             zip.generateAsync({ type: "blob" }).then(content => {
                 const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = "minhas_ferramentas.zip"; link.click();
+                link.href = URL.createObjectURL(content); link.download = "minhas_ferramentas.zip"; link.click();
             });
             closeExportModal();
         }
 
         function openExportSingleModal(index) {
-            siteToExportIndex = index;
-            document.getElementById('exportSingleModal').style.display = 'block';
+            siteToExportIndex = index; document.getElementById('exportSingleModal').style.display = 'block';
         }
         function closeExportSingleModal() {
-            siteToExportIndex = -1;
-            document.getElementById('exportSingleModal').style.display = 'none';
+            siteToExportIndex = -1; document.getElementById('exportSingleModal').style.display = 'none';
         }
 
         function executeExportSingle(format) {
             if (siteToExportIndex < 0 || siteToExportIndex >= sites.length) return;
             const site = sites[siteToExportIndex];
-            const { _searchIndex, ...cleanSite } = site;
+            const { _searchIndex, ...cleanSite } = site; 
             const safeName = sanitizeFilename(site.name);
             const link = document.createElement('a');
 
             if (format === 'html') {
                 const blob = new Blob([site.code], { type: 'text/html' });
-                link.href = URL.createObjectURL(blob);
-                link.download = `${safeName}.html`;
-                link.click();
-            }
-            else if (format === 'json') {
+                link.href = URL.createObjectURL(blob); link.download = `${safeName}.html`; link.click();
+            } else if (format === 'json') {
                 const blob = new Blob([JSON.stringify([cleanSite], null, 2)], { type: 'application/json' });
-                link.href = URL.createObjectURL(blob);
-                link.download = `${safeName}.json`;
-                link.click();
-            }
-            else if (format === 'zip') {
-                if (typeof JSZip === 'undefined') { alert('Erro: ZIP não carregado.'); return; }
+                link.href = URL.createObjectURL(blob); link.download = `${safeName}.json`; link.click();
+            } else if (format === 'zip') {
+                if (typeof JSZip === 'undefined') return;
                 const zip = new JSZip();
                 zip.file(`${safeName}.html`, site.code);
                 zip.file(`${safeName}_backup.json`, JSON.stringify([cleanSite], null, 2));
                 zip.generateAsync({ type: "blob" }).then(content => {
-                    link.href = URL.createObjectURL(content);
-                    link.download = `${safeName}.zip`;
-                    link.click();
+                    link.href = URL.createObjectURL(content); link.download = `${safeName}.zip`; link.click();
                 });
             }
             closeExportSingleModal();
@@ -881,7 +739,6 @@
             const file = event.target.files[0];
             if (!file) return;
             const ext = file.name.split('.').pop().toLowerCase();
-
             if (ext === 'json') processJSONImport(file);
             else if (ext === 'zip') processZIPImport(file);
             else alert("Formato inválido. Use .zip ou .json");
@@ -894,12 +751,11 @@
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (Array.isArray(imported)) {
-                        if (confirm('Adicionar aos existentes?\n[OK] = Sim, misturar\n[Cancelar] = Não, substituir tudo')) {
-                            sites = sites.concat(imported);
-                        } else { sites = imported; }
-                        saveSites(); renderSites(); alert('Importado com sucesso!');
+                        if (confirm('Misturar aos existentes?\n[OK] = Sim\n[Cancelar] = Substituir tudo')) sites = sites.concat(imported);
+                        else sites = imported;
+                        saveSites(); renderSites(); alert('Sucesso!');
                     } else alert('JSON inválido!');
-                } catch (err) { alert('Erro JSON: ' + err.message); }
+                } catch (err) { alert('Erro: ' + err.message); }
             };
             reader.readAsText(file);
         }
@@ -915,11 +771,11 @@
                     const text = await contents.files[backupFile].async("string");
                     const imported = JSON.parse(text);
                     if (Array.isArray(imported)) {
-                        let msg = imported.length === 1 ? `Backup de "${imported[0].name}" encontrado. Importar?` : 'Backup completo encontrado. Substituir tudo?';
+                        let msg = imported.length === 1 ? `Importar backup de 1 ferramenta?` : 'Substituir tudo pelo backup completo?';
                         if (confirm(msg)) {
                             if (imported.length === 1) sites = sites.concat(imported);
                             else sites = imported;
-                            saveSites(); renderSites(); alert('Importado com sucesso!');
+                            saveSites(); renderSites(); alert('Sucesso!');
                         }
                     }
                 } else {
@@ -930,34 +786,22 @@
                             newSites.push({ name: name.replace('.html', '').replace(/_/g, ' '), description: 'Importado', code: html });
                         }
                     }
-                    if (newSites.length > 0 && confirm(`Achamos ${newSites.length} HTMLs no ZIP. Adicionar?`)) {
-                        sites = sites.concat(newSites); saveSites(); renderSites(); alert('Extraído com sucesso!');
-                    } else if (newSites.length === 0) alert('Nenhum dado válido no ZIP.');
+                    if (newSites.length > 0 && confirm(`Adicionar ${newSites.length} HTMLs?`)) {
+                        sites = sites.concat(newSites); saveSites(); renderSites(); alert('Sucesso!');
+                    }
                 }
-            } catch (err) { alert('Erro ZIP: ' + err.message); }
+            } catch (err) {}
         }
 
         // ==========================================
-        // PWA E STATUS
+        // INIT
         // ==========================================
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Erro:', err));
-            });
-        }
-
         function updateOnlineStatus() {
-            const ind = document.getElementById('offlineIndicator');
-            ind.style.display = navigator.onLine ? 'none' : 'block';
+            document.getElementById('offlineIndicator').style.display = navigator.onLine ? 'none' : 'block';
         }
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
-
-        window.addEventListener('load', () => {
-            updateOnlineStatus();
-            loadSites();
-        });
+        window.addEventListener('load', () => { updateOnlineStatus(); loadSites(); });
     </script>
 </body>
-
 </html>
