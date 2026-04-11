@@ -16,6 +16,15 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/search/searchcursor.min.js"></script>
+
     <style>
         /* Design Clean Apple-like */
         :root {
@@ -54,282 +63,151 @@
             padding-bottom: 160px; 
         }
 
-        /* CABEÇALHO FIXO NO TOPO */
         .header {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
+            top: 0; left: 0; width: 100%;
             background: rgba(245, 245, 247, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 1000;
-            padding: 15px 20px;
-            text-align: center;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 1000; padding: 15px 20px; text-align: center;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .header h1 {
-            font-size: 2em;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            color: var(--text-color);
-        }
+        .header h1 { font-size: 2em; font-weight: 700; letter-spacing: -0.5px; color: var(--text-color); }
 
-        /* GRID PRINCIPAL */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
-        .sites-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
+        .sites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
 
         .site-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 24px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-soft);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: flex;
-            flex-direction: column;
+            background: var(--card-bg); border-radius: var(--radius); padding: 24px;
+            border: 1px solid var(--border-color); box-shadow: var(--shadow-soft);
+            transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; flex-direction: column;
         }
+        .site-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+        .site-card h3 { font-size: 1.4em; font-weight: 600; margin-bottom: 8px; color: var(--text-color); word-break: break-word; }
+        .site-card p { color: #555; font-size: 1em; line-height: 1.5; margin-bottom: 20px; flex-grow: 1; }
+        .site-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-        .site-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .site-card h3 {
-            font-size: 1.4em;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-color);
-            word-break: break-word;
-        }
-
-        .site-card p {
-            color: #555;
-            font-size: 1em;
-            line-height: 1.5;
-            margin-bottom: 20px;
-            flex-grow: 1;
-        }
-
-        .site-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        /* BARRA DE FERRAMENTAS FIXA NA BASE */
+        /* TOOLBAR */
         .toolbar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 2000;
-            padding: 15px 20px;
-            padding-bottom: max(15px, env(safe-area-inset-bottom));
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid var(--border-color);
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-            pointer-events: auto;
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 2000; padding: 15px 20px; padding-bottom: max(15px, env(safe-area-inset-bottom));
+            display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;
+            border-top: 1px solid var(--border-color); box-shadow: 0 -4px 15px rgba(0,0,0,0.05); pointer-events: auto;
         }
-
-        .search-container {
-            position: relative;
-            flex: 1 1 100%; 
-        }
-
+        .search-container { position: relative; flex: 1 1 100%; }
         #searchInput {
-            width: 100%;
-            padding: 12px 40px 12px 15px;
-            border-radius: var(--btn-radius);
-            border: 1px solid var(--border-color);
-            background: var(--secondary-bg);
-            color: var(--text-color);
-            font-size: 16px;
-            font-family: var(--font-family);
-            outline: none;
-            transition: all 0.2s ease;
-            -webkit-user-select: auto;
-            user-select: auto;
+            width: 100%; padding: 12px 40px 12px 15px; border-radius: var(--btn-radius);
+            border: 1px solid var(--border-color); background: var(--secondary-bg); color: var(--text-color);
+            font-size: 16px; font-family: var(--font-family); outline: none; transition: all 0.2s ease;
         }
-
-        #searchInput:focus {
-            background: var(--card-bg);
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
-        }
-
+        #searchInput:focus { background: var(--card-bg); border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2); }
         #clearSearch {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #86868b;
-            cursor: pointer;
-            display: none;
-            font-size: 24px;
-            font-weight: bold;
-            padding: 5px;
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: #86868b; cursor: pointer; display: none; font-size: 24px; font-weight: bold; padding: 5px;
         }
 
-        /* BOTÕES */
         .btn {
-            padding: 10px 18px;
-            border-radius: var(--btn-radius);
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: var(--font-family);
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
+            padding: 10px 18px; border-radius: var(--btn-radius); border: none; cursor: pointer;
+            font-size: 14px; font-weight: 600; font-family: var(--font-family); transition: all 0.2s ease;
+            display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
         }
-
         .btn-primary { background: var(--primary-color); color: white; }
         .btn-primary:hover { background: var(--primary-hover); }
-
         .btn-secondary { background: var(--secondary-bg); color: var(--text-color); }
         .btn-secondary:hover { background: var(--secondary-hover); }
-
         .btn-danger { background: var(--danger-bg); color: var(--danger-color); }
         .btn-danger:hover { background: var(--danger-color); color: white; }
 
-        /* BOTÕES FLUTUANTES (ESQUERDA) */
-        .floating-actions {
-            position: fixed;
-            bottom: 160px;
-            left: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 1500;
-        }
-
+        .floating-actions { position: fixed; bottom: 160px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 1500; }
         .fab-btn {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 56px; height: 56px; border-radius: 50%; border: none; color: white; font-size: 24px;
+            cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .fab-btn:hover {
-            transform: scale(1.08);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-
+        .fab-btn:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2); }
         .fab-add { background: var(--primary-color); }
         .fab-voice { background: #34c759; transition: all 0.3s ease; }
 
-        /* ANIMAÇÃO DE PULSO DO MICROFONE */
         @keyframes pulse-record {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
             70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255, 59, 48, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
         }
-
-        .fab-voice.listening {
-            background: var(--danger-color);
-            animation: pulse-record 1.5s infinite;
-        }
+        .fab-voice.listening { background: var(--danger-color); animation: pulse-record 1.5s infinite; }
 
         /* MODAIS */
         .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            z-index: 4000;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 4000;
         }
-
         .modal-content {
-            position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: var(--card-bg); padding: 30px; border-radius: 20px;
-            width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            width: 90%; max-width: 800px; max-height: 95vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
-
         .modal-content h2 { font-weight: 600; margin-bottom: 20px; color: var(--text-color); }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 14px; }
-        .form-group input, .form-group textarea {
-            width: 100%; padding: 12px; border: 1px solid var(--border-color);
-            border-radius: var(--btn-radius); font-size: 15px; font-family: var(--font-family);
-            background: #fafafa; outline: none;
+        .form-group input {
+            width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: var(--btn-radius);
+            font-size: 15px; font-family: var(--font-family); background: #fafafa; outline: none; transition: all 0.2s;
         }
-        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary-color); background: #fff; box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1); }
-        .form-group textarea { height: 150px; font-family: "SF Mono", "Courier New", monospace; resize: vertical; }
-        .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px; }
+        .form-group input:focus { border-color: var(--primary-color); background: #fff; box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1); }
+        
+        /* BARRA DE BUSCA INTERNA DO EDITOR DE CÓDIGO (COM O X) */
+        .code-search-bar {
+            display: flex; gap: 8px; margin-bottom: 8px; align-items: center;
+            background: var(--secondary-bg); padding: 8px; border-radius: 8px;
+            position: relative;
+        }
+        .code-search-bar input {
+            flex: 1; padding: 8px 30px 8px 12px; 
+            border: 1px solid var(--border-color); border-radius: 6px;
+            font-size: 14px; outline: none;
+        }
+        #clearCodeSearchBtn {
+            position: absolute;
+            left: calc(100% - 150px);
+            background: none; border: none; font-size: 18px; font-weight: bold;
+            color: #86868b; cursor: pointer; padding: 5px; display: none;
+        }
+        .code-search-bar span { font-size: 13px; color: #555; min-width: 40px; text-align: center; font-weight: 600; }
+        .code-search-bar button.nav-btn {
+            background: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px;
+            cursor: pointer; font-size: 16px; font-weight: bold; color: var(--text-color); display: flex; align-items: center; justify-content: center;
+        }
+        .code-search-bar button.nav-btn:active { background: #e8e8ed; }
+
+        .cm-search-match { background: #ffeb3b; color: black; }
+
+        /* EDITOR CODEMIRROR */
+        .CodeMirror {
+            border: 1px solid var(--border-color); border-radius: var(--btn-radius);
+            height: 400px; max-height: 50vh; font-family: "SF Mono", "Courier New", monospace;
+            font-size: 14px; background: #fafafa;
+        }
+        .CodeMirror-focused { border-color: var(--primary-color); background: #fff; box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1); }
+        .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 
         /* TELA CHEIA (IFRAME) */
-        .fullscreen-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff; z-index: 5000;
-        }
-        
-        .site-frame {
-            position: absolute;
-            top: 0; left: 0; width: 100%;
-            height: calc(100% - 60px - env(safe-area-inset-bottom, 0px));
-            border: none; background: white; z-index: 1;
-        }
-
+        .fullscreen-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 5000; }
+        .site-frame { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 60px - env(safe-area-inset-bottom, 0px)); border: none; background: white; z-index: 1; }
         .fullscreen-header {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%; height: 60px;
-            background: rgba(245, 245, 247, 0.95); 
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
-            padding: 0 20px;
-            padding-bottom: env(safe-area-inset-bottom);
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 60px;
+            background: rgba(245, 245, 247, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+            padding: 0 20px; padding-bottom: env(safe-area-inset-bottom);
             display: flex; justify-content: space-between; align-items: center; 
-            border-top: 1px solid var(--border-color);
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 10;
+            border-top: 1px solid var(--border-color); box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 10;
         }
-        
         .fullscreen-header h2 {
-            font-size: 16px; font-weight: 600; color: var(--text-color); white-space: nowrap;
-            overflow: hidden; text-overflow: ellipsis; margin: 0 15px; flex: 1; text-align: center;
+            font-size: 16px; font-weight: 600; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 15px; flex: 1; text-align: center;
         }
-
-        #offlineIndicator {
-            border-radius: 20px; font-size: 12px; padding: 4px 12px;
-            background: #ff9f0a; color: white; font-weight: 600;
-            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-        }
-
-        @media (max-width: 768px) {
-            .toolbar .btn { flex: 1; justify-content: center; }
+        #offlineIndicator { border-radius: 20px; font-size: 12px; padding: 4px 12px; background: #ff9f0a; color: white; font-weight: 600; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); }
+        @media (max-width: 768px) { 
+            .toolbar .btn { flex: 1; justify-content: center; } 
+            #clearCodeSearchBtn { left: calc(100% - 135px); } 
         }
     </style>
 </head>
@@ -341,8 +219,7 @@
     </div>
 
     <div class="container">
-        <div class="sites-grid" id="sitesGrid">
-            </div>
+        <div class="sites-grid" id="sitesGrid"></div>
     </div>
 
     <div class="toolbar">
@@ -395,10 +272,21 @@
                     <label for="siteDescription">Descrição</label>
                     <input type="text" id="siteDescription">
                 </div>
+                
                 <div class="form-group">
-                    <label for="siteCode">Código HTML</label>
-                    <textarea id="siteCode" placeholder="Cole aqui o código..." required></textarea>
+                    <label>Código HTML Original</label>
+                    
+                    <div class="code-search-bar">
+                        <input type="text" id="codeSearchInput" placeholder="Encontrar no código..." oninput="performCodeSearch()">
+                        <button type="button" id="clearCodeSearchBtn" onclick="resetCodeSearch()" title="Limpar Busca">×</button>
+                        <span id="codeSearchCount">0/0</span>
+                        <button type="button" class="nav-btn" onclick="prevCodeMatch()" title="Anterior">↑</button>
+                        <button type="button" class="nav-btn" onclick="nextCodeMatch()" title="Próximo">↓</button>
+                    </div>
+
+                    <textarea id="siteCode" placeholder="Cole aqui o código..."></textarea>
                 </div>
+                
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeSiteModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
@@ -408,7 +296,6 @@
     </div>
 
     <div class="fullscreen-overlay" id="fullscreenOverlay">
-        <iframe class="site-frame" id="siteFrame" srcdoc=""></iframe>
         <div class="fullscreen-header">
             <button class="btn btn-danger" onclick="closeFullscreen()">Fechar</button>
             <h2 id="fullscreenTitle">Ferramenta</h2>
@@ -418,7 +305,7 @@
 
     <script>
         // ==========================================
-        // BANCO DE DADOS (IndexedDB)
+        // VARIÁVEIS GLOBAIS
         // ==========================================
         const DB_NAME = 'MeusSitesDB';
         const DB_VERSION = 1;
@@ -431,7 +318,102 @@
         let editingIndex = -1;
         let lastOpenedSiteIndex = -1;
         let siteToExportIndex = -1;
+        
+        let codeEditor; 
 
+        let codeSearchMarks = [];
+        let codeMatchPositions = [];
+        let currentCodeMatchIndex = -1;
+
+        // ==========================================
+        // INICIALIZAÇÃO DO EDITOR CODEMIRROR
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            codeEditor = CodeMirror.fromTextArea(document.getElementById("siteCode"), {
+                mode: "htmlmixed",
+                lineNumbers: true, 
+                lineWrapping: false, 
+                indentUnit: 4,     
+                tabSize: 4,
+                indentWithTabs: true,
+                theme: "default"
+            });
+        });
+
+        // ==========================================
+        // LÓGICA DE BUSCA DENTRO DO CÓDIGO
+        // ==========================================
+        function resetCodeSearch() {
+            const input = document.getElementById('codeSearchInput');
+            input.value = '';
+            document.getElementById('codeSearchCount').textContent = '0/0';
+            document.getElementById('clearCodeSearchBtn').style.display = 'none';
+            codeSearchMarks.forEach(m => m.clear());
+            codeSearchMarks = [];
+            codeMatchPositions = [];
+            currentCodeMatchIndex = -1;
+            input.blur();
+        }
+
+        function performCodeSearch() {
+            codeSearchMarks.forEach(m => m.clear());
+            codeSearchMarks = [];
+            codeMatchPositions = [];
+            currentCodeMatchIndex = -1;
+
+            const query = document.getElementById('codeSearchInput').value;
+            const countDisplay = document.getElementById('codeSearchCount');
+            const clearBtn = document.getElementById('clearCodeSearchBtn');
+
+            if (!query) {
+                countDisplay.textContent = '0/0';
+                clearBtn.style.display = 'none';
+                return;
+            }
+
+            clearBtn.style.display = 'block';
+
+            const cursor = codeEditor.getSearchCursor(query, null, {caseFold: true});
+            
+            while (cursor.findNext()) {
+                codeMatchPositions.push({from: cursor.from(), to: cursor.to()});
+                const mark = codeEditor.markText(cursor.from(), cursor.to(), {className: 'cm-search-match'});
+                codeSearchMarks.push(mark);
+            }
+
+            if (codeMatchPositions.length > 0) {
+                currentCodeMatchIndex = 0;
+                highlightCurrentCodeMatch();
+            } else {
+                countDisplay.textContent = '0/0';
+            }
+        }
+
+        function highlightCurrentCodeMatch() {
+            if (codeMatchPositions.length === 0) return;
+            const countDisplay = document.getElementById('codeSearchCount');
+            countDisplay.textContent = `${currentCodeMatchIndex + 1}/${codeMatchPositions.length}`;
+            
+            const pos = codeMatchPositions[currentCodeMatchIndex];
+            codeEditor.setSelection(pos.from, pos.to);
+            codeEditor.scrollIntoView({from: pos.from, to: pos.to}, 100);
+        }
+
+        function nextCodeMatch() {
+            if (codeMatchPositions.length === 0) return;
+            currentCodeMatchIndex = (currentCodeMatchIndex + 1) % codeMatchPositions.length;
+            highlightCurrentCodeMatch();
+        }
+
+        function prevCodeMatch() {
+            if (codeMatchPositions.length === 0) return;
+            currentCodeMatchIndex = (currentCodeMatchIndex - 1 + codeMatchPositions.length) % codeMatchPositions.length;
+            highlightCurrentCodeMatch();
+        }
+
+        // ==========================================
+        // BANCO DE DADOS E CORE
+        // ==========================================
         async function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -463,9 +445,8 @@
                         }));
                     } else {
                         sites = [{
-                            name: "App Exemplo",
-                            description: "Exemplo inicial",
-                            code: `<!DOCTYPE html><html lang="pt-BR"><body style="font-family:sans-serif; text-align:center; padding:50px;"><h1>Olá!</h1></body></html>`,
+                            name: "App Exemplo", description: "Exemplo inicial",
+                            code: `<!DOCTYPE html>\n<html lang="pt-BR">\n<head>\n  <style>\n    body { font-family: sans-serif; text-align: center; padding: 50px; }\n    h1 { color: #0071e3; }\n  </style>\n</head>\n<body>\n  <h1>Olá!</h1>\n  <p>Edite este código para testar o novo editor.</p>\n</body>\n</html>`,
                             _searchIndex: normalizeText("App Exemplo Exemplo inicial")
                         }];
                         saveSites();
@@ -569,19 +550,42 @@
         }
 
         // ==========================================
-        // AÇÕES (Abrir, Add, Edit, Delete)
+        // AÇÕES (ABRIR COM RESSURREIÇÃO DE IFRAME)
         // ==========================================
         function openSite(index) {
             currentSiteIndex = index; lastOpenedSiteIndex = index;
             localStorage.setItem('lastOpenedSiteIndex', index.toString());
             const site = sites[index];
             document.getElementById('fullscreenTitle').textContent = site.name;
-            document.getElementById('siteFrame').srcdoc = site.code;
-            document.getElementById('fullscreenOverlay').style.display = 'block';
+            
+            const overlay = document.getElementById('fullscreenOverlay');
+
+            // 1. Destrói o iframe antigo por completo
+            const oldIframe = document.getElementById('siteFrame');
+            if (oldIframe) {
+                oldIframe.remove();
+            }
+
+            // 2. Cria um iframe 100% novo (força o navegador a baixar fontes/scripts de novo)
+            const newIframe = document.createElement('iframe');
+            newIframe.id = 'siteFrame';
+            newIframe.className = 'site-frame';
+
+            // 3. Insere o novo iframe na tela ANTES do cabeçalho
+            overlay.insertBefore(newIframe, overlay.querySelector('.fullscreen-header'));
+
+            // 4. Mostra a tela
+            overlay.style.display = 'block';
+
+            // 5. Injeta o código com srcdoc (mantém a origem segura para o banco de dados funcionar localmente)
+            setTimeout(() => {
+                newIframe.srcdoc = site.code;
+            }, 10);
         }
 
         function closeFullscreen() {
-            document.getElementById('siteFrame').srcdoc = ''; 
+            const iframe = document.getElementById('siteFrame');
+            if (iframe) iframe.srcdoc = ''; // Limpa para parar vídeos/áudios
             document.getElementById('fullscreenOverlay').style.display = 'none';
             currentSiteIndex = -1; renderSites();
         }
@@ -591,8 +595,11 @@
             document.getElementById('modalTitle').textContent = 'Nova Ferramenta';
             document.getElementById('siteName').value = '';
             document.getElementById('siteDescription').value = '';
-            document.getElementById('siteCode').value = '';
+            
+            resetCodeSearch(); 
+            codeEditor.setValue(''); 
             document.getElementById('siteModal').style.display = 'block';
+            setTimeout(() => codeEditor.refresh(), 50); 
         }
 
         function editSite(index) {
@@ -601,8 +608,11 @@
             document.getElementById('modalTitle').textContent = 'Editar Ferramenta';
             document.getElementById('siteName').value = sites[index].name;
             document.getElementById('siteDescription').value = sites[index].description || '';
-            document.getElementById('siteCode').value = sites[index].code;
+            
+            resetCodeSearch(); 
+            codeEditor.setValue(sites[index].code); 
             document.getElementById('siteModal').style.display = 'block';
+            setTimeout(() => codeEditor.refresh(), 50);
         }
 
         function deleteSite(index) {
@@ -626,10 +636,12 @@
 
         document.getElementById('siteForm').addEventListener('submit', function (e) {
             e.preventDefault();
+            if (!codeEditor.getValue().trim()) { alert("O código não pode estar vazio."); return; }
+
             const siteData = {
                 name: document.getElementById('siteName').value,
                 description: document.getElementById('siteDescription').value,
-                code: document.getElementById('siteCode').value
+                code: codeEditor.getValue()
             };
             if (editingIndex >= 0) sites[editingIndex] = siteData;
             else sites.push(siteData);
@@ -641,7 +653,7 @@
         });
 
         // ==========================================
-        // BUSCA E VOZ (COM TRATAMENTO DE ERROS E ANIMAÇÃO)
+        // BUSCA PRINCIPAL E VOZ
         // ==========================================
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', function (e) {
@@ -652,12 +664,9 @@
         });
 
         document.getElementById('clearSearch').addEventListener('click', function (e) {
-            e.preventDefault(); // Impede o navegador de bugar o toque no celular
+            e.preventDefault(); 
             const input = document.getElementById('searchInput');
-            input.value = ''; 
-            this.style.display = 'none';
-            renderSites();
-            input.blur(); // AQUI: Força o teclado do celular a sumir!
+            input.value = ''; this.style.display = 'none'; renderSites(); input.blur(); 
         });
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -665,55 +674,36 @@
             const recognition = new SpeechRecognition();
             recognition.lang = 'pt-BR'; recognition.interimResults = false; recognition.maxAlternatives = 1;
 
-            recognition.onstart = function() {
-                const btn = document.getElementById('btnVoice');
-                if(btn) btn.classList.add('listening');
-            };
-
+            recognition.onstart = function() { const btn = document.getElementById('btnVoice'); if(btn) btn.classList.add('listening'); };
             recognition.onresult = function (e) {
                 const transcript = e.results[0][0].transcript.trim();
                 document.getElementById('searchInput').value = transcript;
                 document.getElementById('clearSearch').style.display = 'block';
                 filterSites(transcript);
             };
-
-            recognition.onend = function() {
-                const btn = document.getElementById('btnVoice');
-                if(btn) btn.classList.remove('listening');
-            };
-
+            recognition.onend = function() { const btn = document.getElementById('btnVoice'); if(btn) btn.classList.remove('listening'); };
             recognition.onerror = function(event) {
-                const btn = document.getElementById('btnVoice');
-                if(btn) btn.classList.remove('listening');
-                
+                const btn = document.getElementById('btnVoice'); if(btn) btn.classList.remove('listening');
                 let msg = 'Erro no microfone: ' + event.error;
-                if(event.error === 'not-allowed') {
-                    msg = 'Acesso ao microfone negado.\n\nNo celular, o navegador EXIGE que o site esteja rodando em uma conexão segura (HTTPS / cadeado) para usar voz.';
-                }
+                if(event.error === 'not-allowed') msg = 'Acesso ao microfone negado.\n\nNo celular, o navegador EXIGE que o site esteja rodando em uma conexão segura (HTTPS / cadeado) para usar voz.';
                 alert(msg);
             };
-
-            window.startVoiceSearch = function() { 
-                try { recognition.start(); } 
-                catch(e) { console.log("Microfone já está em uso."); }
-            }
+            window.startVoiceSearch = function() { try { recognition.start(); } catch(e) { console.log("Microfone em uso."); } }
         } else {
-            window.startVoiceSearch = function() { alert('A busca por voz não é suportada neste navegador de celular, ou requer conexão segura (HTTPS).'); }
+            window.startVoiceSearch = function() { alert('Busca por voz não suportada ou requer conexão segura (HTTPS).'); }
         }
 
         // ==========================================
         // EXPORTAR / IMPORTAR
         // ==========================================
         function sanitizeFilename(name) { return name.replace(/[^a-z0-9]/gi, '_').toLowerCase(); }
-
         function openExportModal() { document.getElementById('exportModal').style.display = 'block'; }
         function closeExportModal() { document.getElementById('exportModal').style.display = 'none'; }
 
         function exportSitesJSON() {
             const exportData = sites.map(({_searchIndex, ...rest}) => rest);
             const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob); link.download = 'backup_ferramentas.json'; link.click();
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'backup_ferramentas.json'; link.click();
             closeExportModal();
         }
 
@@ -724,18 +714,13 @@
             zip.file("sites_backup.json", JSON.stringify(exportData, null, 2));
             sites.forEach(site => zip.file(`${sanitizeFilename(site.name)}.html`, site.code));
             zip.generateAsync({ type: "blob" }).then(content => {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content); link.download = "minhas_ferramentas.zip"; link.click();
+                const link = document.createElement('a'); link.href = URL.createObjectURL(content); link.download = "minhas_ferramentas.zip"; link.click();
             });
             closeExportModal();
         }
 
-        function openExportSingleModal(index) {
-            siteToExportIndex = index; document.getElementById('exportSingleModal').style.display = 'block';
-        }
-        function closeExportSingleModal() {
-            siteToExportIndex = -1; document.getElementById('exportSingleModal').style.display = 'none';
-        }
+        function openExportSingleModal(index) { siteToExportIndex = index; document.getElementById('exportSingleModal').style.display = 'block'; }
+        function closeExportSingleModal() { siteToExportIndex = -1; document.getElementById('exportSingleModal').style.display = 'none'; }
 
         function executeExportSingle(format) {
             if (siteToExportIndex < 0 || siteToExportIndex >= sites.length) return;
@@ -755,16 +740,13 @@
                 const zip = new JSZip();
                 zip.file(`${safeName}.html`, site.code);
                 zip.file(`${safeName}_backup.json`, JSON.stringify([cleanSite], null, 2));
-                zip.generateAsync({ type: "blob" }).then(content => {
-                    link.href = URL.createObjectURL(content); link.download = `${safeName}.zip`; link.click();
-                });
+                zip.generateAsync({ type: "blob" }).then(content => { link.href = URL.createObjectURL(content); link.download = `${safeName}.zip`; link.click(); });
             }
             closeExportSingleModal();
         }
 
         function handleUniversalImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+            const file = event.target.files[0]; if (!file) return;
             const ext = file.name.split('.').pop().toLowerCase();
             if (ext === 'json') processJSONImport(file);
             else if (ext === 'zip') processZIPImport(file);
@@ -813,9 +795,7 @@
                             newSites.push({ name: name.replace('.html', '').replace(/_/g, ' '), description: 'Importado', code: html });
                         }
                     }
-                    if (newSites.length > 0 && confirm(`Adicionar ${newSites.length} HTMLs?`)) {
-                        sites = sites.concat(newSites); saveSites(); renderSites(); alert('Sucesso!');
-                    }
+                    if (newSites.length > 0 && confirm(`Adicionar ${newSites.length} HTMLs?`)) { sites = sites.concat(newSites); saveSites(); renderSites(); alert('Sucesso!'); }
                 }
             } catch (err) {}
         }
@@ -823,9 +803,7 @@
         // ==========================================
         // INIT
         // ==========================================
-        function updateOnlineStatus() {
-            document.getElementById('offlineIndicator').style.display = navigator.onLine ? 'none' : 'block';
-        }
+        function updateOnlineStatus() { document.getElementById('offlineIndicator').style.display = navigator.onLine ? 'none' : 'block'; }
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
         window.addEventListener('load', () => { updateOnlineStatus(); loadSites(); });
