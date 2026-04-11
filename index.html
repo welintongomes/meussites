@@ -1,589 +1,911 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SiteVault</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Ferramentas</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='8' fill='%230071e3'/%3E%3Cpath d='M16 16h16v4H16zM16 24h16v4H16zM16 32h12v4H16z' fill='white'/%3E%3C/svg%3E">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f5f5f7">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Sites Manager">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-  :root {
-    --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26;
-    --border: #2a2a3d; --accent: #6c63ff; --accent2: #ff6584;
-    --accent3: #43e97b; --text: #e8e8f0; --text2: #8888aa;
-    --radius: 12px;
-    --mono: 'Space Mono', monospace;
-    --sans: 'Syne', sans-serif;
-  }
+    <style>
+        /* Design Clean Apple-like */
+        :root {
+            --bg-color: #f5f5f7; /* Fundo cinza bem claro da Apple */
+            --text-color: #1d1d1f; /* Texto escuro suave */
+            --card-bg: #ffffff;
+            --primary-color: #0071e3; /* Azul Apple */
+            --primary-hover: #0077ed;
+            --secondary-bg: #e8e8ed;
+            --secondary-hover: #d2d2d7;
+            --danger-color: #ff3b30; /* Vermelho Apple */
+            --danger-bg: rgba(255, 59, 48, 0.1);
+            --border-color: #d2d2d7;
+            --shadow-soft: 0 4px 6px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-hover: 0 10px 20px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+            --radius: 18px;
+            --btn-radius: 12px;
+            --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  /* HEADER */
-  #sv-header {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 16px; background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 100; flex-wrap: wrap;
-  }
-  #sv-logo { font-family: var(--mono); font-size: 1.05rem; font-weight: 700; color: var(--accent); letter-spacing: -1px; white-space: nowrap; flex-shrink: 0; }
-  #sv-logo span { color: var(--accent2); }
-  #sv-search {
-    flex: 1; min-width: 120px; background: var(--surface2);
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 8px 12px; color: var(--text); font-family: var(--mono);
-    font-size: .78rem; outline: none; transition: border-color .2s;
-  }
-  #sv-search:focus { border-color: var(--accent); }
-  #sv-search::placeholder { color: var(--text2); }
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
 
-  .sv-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 7px 12px; border-radius: 8px; border: none;
-    font-family: var(--mono); font-size: .72rem; font-weight: 700;
-    cursor: pointer; transition: opacity .15s, transform .1s;
-    white-space: nowrap; flex-shrink: 0; line-height: 1;
-  }
-  .sv-btn:active { transform: scale(.96); }
-  .sv-btn-primary { background: var(--accent); color: #fff; }
-  .sv-btn-danger  { background: #3d1a22; color: var(--accent2); border: 1px solid #5a2535; }
-  .sv-btn-ghost   { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
-  .sv-btn-success { background: #1a3d2a; color: var(--accent3); border: 1px solid #2a5a3d; }
-  .sv-btn:hover { opacity: .82; }
-  #sv-header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
 
-  /* GRID */
-  #sv-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 14px; padding: 16px;
-  }
-  .sv-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); overflow: hidden;
-    display: flex; flex-direction: column;
-    transition: border-color .2s, transform .18s;
-  }
-  .sv-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-  /* Preview thumbnail - sandbox mínimo (só visual) */
-  .sv-card-preview {
-    height: 130px; background: var(--surface2);
-    position: relative; overflow: hidden; cursor: pointer;
-  }
-  .sv-card-preview iframe {
-    width: 300%; height: 300%;
-    transform: scale(.333); transform-origin: top left;
-    border: none; pointer-events: none; display: block;
-  }
-  .sv-card-preview-overlay { position: absolute; inset: 0; }
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-color);
+        }
 
-  .sv-card-body { padding: 12px 14px; flex: 1; cursor: pointer; }
-  .sv-card-name { font-size: .95rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 4px; }
-  .sv-card-meta { font-family: var(--mono); font-size: .66rem; color: var(--text2); }
+        .header p {
+            font-size: 1.1em;
+            color: #86868b;
+            margin-top: 5px;
+        }
 
-  .sv-card-actions {
-    display: flex; gap: 5px; padding: 8px 12px;
-    background: var(--surface2); border-top: 1px solid var(--border); flex-wrap: wrap;
-  }
-  .sv-card-actions .sv-btn { padding: 5px 9px; font-size: .68rem; }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-soft);
+        }
 
-  /* EMPTY */
-  #sv-empty { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text2); display: none; }
-  #sv-empty svg { opacity: .25; margin-bottom: 14px; display: block; margin-inline: auto; }
-  #sv-empty p { font-family: var(--mono); font-size: .82rem; margin-bottom: 14px; }
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+            max-width: 400px;
+        }
 
-  /* MODAL */
-  .sv-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.82); backdrop-filter: blur(6px);
-    z-index: 200; align-items: center; justify-content: center; padding: 12px;
-  }
-  .sv-overlay.active { display: flex; }
-  .sv-modal {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); width: 100%; max-width: 620px;
-    max-height: 92vh; display: flex; flex-direction: column; overflow: hidden;
-  }
-  .sv-modal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-  }
-  .sv-modal-header h2 { font-size: .95rem; font-weight: 800; }
-  .sv-btn-close { background: none; border: none; color: var(--text2); font-size: 1.1rem; cursor: pointer; padding: 4px; line-height: 1; }
-  .sv-btn-close:hover { color: var(--accent2); }
-  .sv-modal-body { padding: 16px 18px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
-  .sv-field label { display: block; font-family: var(--mono); font-size: .68rem; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
-  .sv-field input, .sv-field textarea {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 9px 12px; color: var(--text);
-    font-family: var(--mono); font-size: .76rem; outline: none;
-    transition: border-color .2s; resize: vertical;
-  }
-  .sv-field input:focus, .sv-field textarea:focus { border-color: var(--accent); }
-  .sv-field textarea { min-height: 200px; }
-  .sv-modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 18px; border-top: 1px solid var(--border); flex-shrink: 0; }
+        #searchInput {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border-radius: var(--btn-radius);
+            border: 1px solid transparent;
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            font-family: var(--font-family);
+            outline: none;
+            transition: all 0.2s ease;
+        }
 
-  /* VIEWER FULLSCREEN */
-  #sv-viewer { display: none; position: fixed; inset: 0; z-index: 500; background: #000; flex-direction: column; }
-  #sv-viewer.active { display: flex; }
-  #sv-viewer-bar {
-    display: flex; align-items: center; gap: 10px;
-    padding: 6px 12px; background: var(--surface);
-    border-bottom: 1px solid var(--border); flex-shrink: 0;
-  }
-  #sv-viewer-title { flex: 1; font-family: var(--mono); font-size: .78rem; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #searchInput:focus {
+            background: var(--card-bg);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+        }
 
-  /*
-   * IFRAME DO VIEWER
-   * sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads"
-   *
-   * Por que allow-same-origin é necessário aqui:
-   *   → Quando rodando via file://, blob:null herda origem opaca
-   *     e o browser bloqueia IndexedDB/localStorage nela.
-   *   → Com allow-same-origin o iframe compartilha a origem file://
-   *     e todas as APIs do browser ficam disponíveis.
-   *
-   * Como o gerenciador é protegido mesmo assim:
-   *   → Todo o estado e funções do gerenciador vivem dentro de
-   *     uma IIFE/closure — não há nada no window global que o
-   *     site interno possa chamar acidentalmente.
-   *   → O único objeto exposto no window é "SV" (somente métodos
-   *     de UI, sem acesso ao banco de dados ou ao estado interno).
-   *   → CSS: o viewer tem seu próprio documento. CSS do site
-   *     interno não vaza porque iframes têm stylesheet separado.
-   */
-  #sv-viewer-frame { flex: 1; width: 100%; border: none; display: block; }
+        #clearSearch {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #86868b;
+            cursor: pointer;
+            display: none;
+            font-size: 20px;
+            font-weight: bold;
+        }
 
-  /* TOAST */
-  #sv-toast {
-    position: fixed; bottom: 20px; left: 50%;
-    transform: translateX(-50%) translateY(70px);
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 9px 18px;
-    font-family: var(--mono); font-size: .76rem; color: var(--text);
-    z-index: 999; transition: transform .28s ease;
-    pointer-events: none; white-space: nowrap;
-  }
-  #sv-toast.show { transform: translateX(-50%) translateY(0); }
+        .sites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding-bottom: 80px; /* Espaço para botões flutuantes */
+        }
 
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-</style>
+        .site-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .site-card h3 {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            word-break: break-word;
+        }
+
+        .site-card p {
+            color: #555;
+            font-size: 1em;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .site-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Estilos de Botões Universais */
+        .btn {
+            padding: 10px 18px;
+            border-radius: var(--btn-radius);
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-family);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-bg);
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger-bg);
+            color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        /* Botões Flutuantes (Mobile & Desktop) */
+        .floating-actions {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .fab-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+
+        .fab-add { background: var(--primary-color); }
+        .fab-voice { background: #34c759; /* Verde Apple */ }
+
+        /* Modais */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 3000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h2 {
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--btn-radius);
+            font-size: 15px;
+            font-family: var(--font-family);
+            transition: border-color 0.2s ease;
+            background: #fafafa;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+        }
+
+        .form-group textarea {
+            height: 150px;
+            font-family: "SF Mono", "Courier New", monospace;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        /* Fullscreen Overlay (Iframe) */
+        .fullscreen-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
+            z-index: 9999;
+        }
+
+        .fullscreen-content {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+        }
+
+        .fullscreen-header {
+            background: rgba(245, 245, 247, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .fullscreen-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0 15px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .site-frame { flex: 1; border: none; background: white; }
+
+        #offlineIndicator {
+            border-radius: 20px;
+            font-size: 12px;
+            padding: 4px 12px;
+            background: #ff9f0a; /* Laranja Apple */
+            color: white;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px 15px; }
+            .header h1 { font-size: 2em; }
+            .toolbar { flex-direction: column; padding: 15px; align-items: stretch; }
+            .search-container { max-width: 100%; }
+            .toolbar .btn { width: 100%; justify-content: center; }
+            
+            .floating-actions {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
 </head>
+
 <body>
+    <div class="container">
+        <div class="header">
+            <h1>Ferramentas</h1>
+            <p>Seu espaço de trabalho local</p>
+            <div id="offlineIndicator" style="display: none;">📱 Modo Offline</div>
+        </div>
 
-<header id="sv-header">
-  <div id="sv-logo">Site<span>Vault</span></div>
-  <input id="sv-search" type="search" placeholder="🔍 pesquisar sites...">
-  <div id="sv-header-actions">
-    <button class="sv-btn sv-btn-primary" onclick="SV.openAdd()">＋ Novo</button>
-    <button class="sv-btn sv-btn-success" onclick="SV.importAll()">⬆ Importar</button>
-    <button class="sv-btn sv-btn-ghost"   onclick="SV.exportAll()">⬇ Exportar tudo</button>
-  </div>
-</header>
+        <div class="toolbar">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Pesquisar ferramentas...">
+                <button id="clearSearch">×</button>
+            </div>
+            <button class="btn btn-secondary" onclick="openExportModal()">💾 Salvar Tudo</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('importFileMaster').click()">📂 Importar</button>
+            <input type="file" id="importFileMaster" accept=".json, .zip" style="display: none;" onchange="handleUniversalImport(event)">
+        </div>
 
-<main id="sv-grid">
-  <div id="sv-empty">
-    <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-      <rect x="6" y="10" width="44" height="36" rx="4" stroke="#6c63ff" stroke-width="1.8"/>
-      <path d="M6 18h44" stroke="#6c63ff" stroke-width="1.8"/>
-      <circle cx="13" cy="14" r="1.8" fill="#6c63ff"/>
-      <circle cx="19" cy="14" r="1.8" fill="#ff6584"/>
-      <circle cx="25" cy="14" r="1.8" fill="#43e97b"/>
-    </svg>
-    <p>Nenhum site salvo ainda.</p>
-    <button class="sv-btn sv-btn-primary" onclick="SV.openAdd()">＋ Adicionar primeiro site</button>
-  </div>
-</main>
-
-<!-- Modal add/edit -->
-<div class="sv-overlay" id="sv-modal-overlay">
-  <div class="sv-modal">
-    <div class="sv-modal-header">
-      <h2 id="sv-modal-title">Novo Site</h2>
-      <button class="sv-btn-close" onclick="SV.closeModal()">✕</button>
+        <div class="sites-grid" id="sitesGrid">
+            </div>
     </div>
-    <div class="sv-modal-body">
-      <div class="sv-field">
-        <label>Nome do site</label>
-        <input id="sv-input-name" type="text" placeholder="Ex: Jogo de Damas">
-      </div>
-      <div class="sv-field">
-        <label>Código HTML completo</label>
-        <textarea id="sv-input-code" placeholder="Cole aqui o HTML completo (<!DOCTYPE html>...)"></textarea>
-      </div>
+
+    <div class="floating-actions">
+        <button class="fab-btn fab-voice" onclick="startVoiceSearch()" title="Pesquisa por voz">🎤</button>
+        <button class="fab-btn fab-add" onclick="openAddSiteModal()" title="Adicionar Site">＋</button>
     </div>
-    <div class="sv-modal-footer">
-      <button class="sv-btn sv-btn-ghost"   onclick="SV.closeModal()">Cancelar</button>
-      <button class="sv-btn sv-btn-primary"  onclick="SV.save()">Salvar</button>
+
+    <div class="modal" id="exportModal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h2>Como deseja salvar tudo?</h2>
+            <p style="color: #555; margin-bottom: 25px;">Escolha o formato para o backup completo.</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn btn-primary" onclick="exportSitesZip()">📦 Salvar como ZIP (Recomendado)</button>
+                <button class="btn btn-secondary" onclick="exportSitesJSON()">📄 Salvar como JSON</button>
+                <button class="btn btn-danger" onclick="closeExportModal()">Cancelar</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Modal confirmar delete -->
-<div class="sv-overlay" id="sv-confirm-overlay">
-  <div class="sv-modal" style="max-width:360px">
-    <div class="sv-modal-header">
-      <h2>Apagar site?</h2>
-      <button class="sv-btn-close" onclick="SV.closeConfirm()">✕</button>
+    <div class="modal" id="exportSingleModal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h2>Salvar Ferramenta</h2>
+            <p style="color: #555; margin-bottom: 25px;">Escolha em qual formato deseja baixar este site.</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn btn-primary" onclick="executeExportSingle('html')">🌐 Baixar página (HTML)</button>
+                <button class="btn btn-secondary" onclick="executeExportSingle('zip')">🗜️ Baixar compactado (ZIP)</button>
+                <button class="btn btn-secondary" onclick="executeExportSingle('json')">📦 Baixar dados (JSON)</button>
+                <button class="btn btn-danger" onclick="closeExportSingleModal()">Cancelar</button>
+            </div>
+        </div>
     </div>
-    <div class="sv-modal-body">
-      <p style="font-family:var(--mono);font-size:.8rem;color:var(--text2);line-height:1.6">
-        Essa ação é irreversível.<br>
-        "<span id="sv-del-name" style="color:var(--accent2)"></span>" será removido permanentemente.
-      </p>
+
+    <div class="modal" id="siteModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Nova Ferramenta</h2>
+            <form id="siteForm">
+                <div class="form-group">
+                    <label for="siteName">Nome</label>
+                    <input type="text" id="siteName" required>
+                </div>
+                <div class="form-group">
+                    <label for="siteDescription">Descrição</label>
+                    <input type="text" id="siteDescription">
+                </div>
+                <div class="form-group">
+                    <label for="siteCode">Código HTML</label>
+                    <textarea id="siteCode" placeholder="Cole aqui o código..." required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeSiteModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="sv-modal-footer">
-      <button class="sv-btn sv-btn-ghost"  onclick="SV.closeConfirm()">Cancelar</button>
-      <button class="sv-btn sv-btn-danger" onclick="SV.confirmDelete()">Apagar</button>
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <div class="fullscreen-content">
+            <div class="fullscreen-header">
+                <button class="btn btn-danger" onclick="closeFullscreen()">Fechar</button>
+                <h2 id="fullscreenTitle">Ferramenta</h2>
+                <button class="btn btn-secondary" onclick="editCurrentSite()">Editar</button>
+            </div>
+            <iframe class="site-frame" id="siteFrame" srcdoc=""></iframe>
+        </div>
     </div>
-  </div>
-</div>
+    
+    <script>
+        // ==========================================
+        // BANCO DE DADOS (IndexedDB)
+        // ==========================================
+        const DB_NAME = 'SitesManagerDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'sites';
 
-<!-- Viewer fullscreen -->
-<div id="sv-viewer">
-  <div id="sv-viewer-bar">
-    <button class="sv-btn sv-btn-ghost" onclick="SV.closeViewer()" style="padding:5px 10px">✕ Fechar</button>
-    <span id="sv-viewer-title"></span>
-  </div>
-  <iframe
-    id="sv-viewer-frame"
-    sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock"
-    allowfullscreen
-  ></iframe>
-</div>
+        let currentPage = 0;
+        const ITEMS_PER_PAGE = 8;
+        let sites = [];
+        let currentSiteIndex = -1;
+        let editingIndex = -1;
+        let lastOpenedSiteIndex = -1;
+        
+        // Controle para o novo modal de exportar um único site
+        let siteToExportIndex = -1;
 
-<!-- Toast -->
-<div id="sv-toast"></div>
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+            });
+        }
 
-<!-- Inputs ocultos para import -->
-<input type="file" id="sv-file-all" accept=".json" style="display:none">
-<input type="file" id="sv-file-one" accept=".json" style="display:none">
+        async function loadSites() {
+            try {
+                const db = await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
 
-<script>
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  SiteVault – tudo dentro de IIFE, nada exposto globalmente  ║
-// ║  exceto o objeto SV com apenas métodos de UI                ║
-// ╚══════════════════════════════════════════════════════════════╝
-const SV = (function () {
-  'use strict';
+                request.onsuccess = () => {
+                    if (request.result.length > 0) {
+                        sites = request.result.map(item => ({
+                            name: item.name, description: item.description, code: item.code
+                        }));
+                    } else {
+                        sites = [{
+                            name: "Meu Primeiro App",
+                            description: "Exemplo de site salvo localmente",
+                            code: `<!DOCTYPE html><html lang="pt-BR"><body style="font-family:sans-serif; text-align:center; padding:50px;"><h1>Olá!</h1><p>Esta é uma ferramenta de teste.</p></body></html>`
+                        }];
+                        saveSites();
+                    }
 
-  // ── IndexedDB do GERENCIADOR (prefixo sv_ para não colidir) ──
-  const DB_NAME = 'SiteVaultDB_v3';
-  const STORE   = 'sv_sites';
-  let _db = null;
+                    const savedLastOpened = localStorage.getItem('lastOpenedSiteIndex');
+                    if (savedLastOpened !== null) {
+                        const index = parseInt(savedLastOpened);
+                        if (index >= 0 && index < sites.length) lastOpenedSiteIndex = index;
+                    }
+                    renderSites();
+                };
+            } catch (error) {
+                console.error('Erro ao carregar sites:', error);
+                renderSites();
+            }
+        }
+        
+        async function saveSites() {
+            try {
+                const db = await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const clearRequest = store.clear();
+                clearRequest.onsuccess = () => { sites.forEach(site => store.add(site)); };
+            } catch (error) { console.error('Erro ao salvar sites:', error); }
+        }
 
-  function dbOpen() {
-    return new Promise((res, rej) => {
-      if (_db) return res(_db);
-      const req = indexedDB.open(DB_NAME, 1);
-      req.onupgradeneeded = e => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains(STORE))
-          db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
-      };
-      req.onsuccess = e => { _db = e.target.result; res(_db); };
-      req.onerror   = e => rej(e.target.error);
-    });
-  }
+        // ==========================================
+        // INTERFACE E RENDERIZAÇÃO
+        // ==========================================
+        function renderSites(append = false) {
+            const grid = document.getElementById('sitesGrid');
+            if (!append) { grid.innerHTML = ''; currentPage = 0; }
 
-  function pReq(req) {
-    return new Promise((res, rej) => {
-      req.onsuccess = e => res(e.target.result);
-      req.onerror   = e => rej(e.target.error);
-    });
-  }
+            let sitesToRender = sites.slice().reverse();
+            if (lastOpenedSiteIndex >= 0) {
+                const lastOpenedSite = sites[lastOpenedSiteIndex];
+                sitesToRender = sitesToRender.filter(site => site !== lastOpenedSite);
+                sitesToRender.unshift(lastOpenedSite);
+            }
 
-  async function getStore(mode) {
-    const db = await dbOpen();
-    return db.transaction(STORE, mode).objectStore(STORE);
-  }
+            const start = currentPage * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageItems = sitesToRender.slice(start, end);
 
-  const dbGetAll = async () => pReq((await getStore('readonly')).getAll());
-  const dbGet    = async id => pReq((await getStore('readonly')).get(id));
-  const dbPut    = async rec => pReq((await getStore('readwrite')).put(rec));
-  const dbDel    = async id => new Promise(async (res, rej) => {
-    const r = (await getStore('readwrite')).delete(id);
-    r.onsuccess = () => res();
-    r.onerror   = e => rej(e.target.error);
-  });
+            pageItems.forEach((site) => {
+                const index = sites.indexOf(site);
+                const card = document.createElement('div');
+                card.className = 'site-card';
+                card.innerHTML = `
+                    <h3>${site.name}</h3>
+                    <p>${site.description || 'Sem descrição'}</p>
+                    <div class="site-actions">
+                        <button class="btn btn-primary" onclick="openSite(${index})">Abrir</button>
+                        <button class="btn btn-secondary" onclick="editSite(${index})">Editar</button>
+                        <button class="btn btn-secondary" onclick="openExportSingleModal(${index})">↓ Salvar</button>
+                        <button class="btn btn-danger" onclick="deleteSite(${index})">Excluir</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
 
-  // ── Estado interno (privado, inacessível pelo iframe) ────────
-  let _sites  = [];
-  let _editId = null;
-  let _delId  = null;
-  let _query  = '';
+            if (end < sitesToRender.length) {
+                const loadBtn = document.createElement('button');
+                loadBtn.className = 'btn btn-secondary';
+                loadBtn.textContent = `Carregar mais (${sitesToRender.length - end} restantes)`;
+                loadBtn.style.cssText = 'width:100%; grid-column: 1/-1; padding: 15px; margin-top: 10px;';
+                loadBtn.onclick = () => {
+                    currentPage++; loadBtn.remove(); renderSites(true);
+                };
+                grid.appendChild(loadBtn);
+            }
+        }
 
-  // ── DOM helpers ──────────────────────────────────────────────
-  const $ = id => document.getElementById(id);
+        function filterSites(searchTerm) {
+            if (!searchTerm.trim()) { renderSites(); return; }
+            const searchWords = searchTerm.trim().split(/\s+/).map(word => normalizeText(word));
+            
+            const filteredSites = sites.filter(site => {
+                const normalizedName = normalizeText(site.name);
+                const normalizedDesc = site.description ? normalizeText(site.description) : '';
+                if (searchWords.length === 1) {
+                    return normalizedName.includes(searchWords[0]) || normalizedDesc.includes(searchWords[0]);
+                } else {
+                    return searchWords.every(word => normalizedName.includes(word)) || 
+                           searchWords.every(word => normalizedDesc.includes(word));
+                }
+            });
 
-  // ── Toast ────────────────────────────────────────────────────
-  let _tt;
-  function toast(msg) {
-    const el = $('sv-toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(_tt);
-    _tt = setTimeout(() => el.classList.remove('show'), 2800);
-  }
+            const grid = document.getElementById('sitesGrid');
+            grid.innerHTML = '';
+            if (filteredSites.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #86868b; grid-column: 1/-1; padding: 40px;">Nenhuma ferramenta encontrada.</p>';
+                return;
+            }
+            
+            let sitesToRender = filteredSites.slice().reverse();
+            sitesToRender.forEach((site) => {
+                const originalIndex = sites.indexOf(site);
+                const card = document.createElement('div');
+                card.className = 'site-card';
+                card.innerHTML = `
+                    <h3>${site.name}</h3>
+                    <p>${site.description || 'Sem descrição'}</p>
+                    <div class="site-actions">
+                        <button class="btn btn-primary" onclick="openSite(${originalIndex})">Abrir</button>
+                        <button class="btn btn-secondary" onclick="editSite(${originalIndex})">Editar</button>
+                        <button class="btn btn-secondary" onclick="openExportSingleModal(${originalIndex})">↓ Salvar</button>
+                        <button class="btn btn-danger" onclick="deleteSite(${originalIndex})">Excluir</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
-  // ── Utilitários ──────────────────────────────────────────────
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  function fmtDate(ts) {
-    return ts ? new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}) : '';
-  }
-  function fmtSize(code) {
-    const kb = code.length / 1024;
-    return kb < 1 ? code.length + ' B' : kb.toFixed(1) + ' KB';
-  }
-  function dlJSON(data, name) {
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
-    Object.assign(document.createElement('a'),{href:url,download:name}).click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
+        // ==========================================
+        // AÇÕES DOS SITES (Abrir, Add, Edit, Delete)
+        // ==========================================
+        function openSite(index) {
+            currentSiteIndex = index; lastOpenedSiteIndex = index;
+            localStorage.setItem('lastOpenedSiteIndex', index.toString());
+            const site = sites[index];
+            document.getElementById('fullscreenTitle').textContent = site.name;
+            document.getElementById('siteFrame').srcdoc = site.code;
+            document.getElementById('fullscreenOverlay').style.display = 'block';
+        }
 
-  // ── Render grid ──────────────────────────────────────────────
-  function renderGrid() {
-    const q    = _query.trim().toLowerCase();
-    const list = q ? _sites.filter(s => s.name.toLowerCase().includes(q)) : _sites;
+        function closeFullscreen() {
+            document.getElementById('siteFrame').srcdoc = '';
+            document.getElementById('fullscreenOverlay').style.display = 'none';
+            currentSiteIndex = -1; renderSites();
+        }
 
-    $('sv-grid').querySelectorAll('.sv-card').forEach(c => c.remove());
-    $('sv-empty').style.display = list.length ? 'none' : 'block';
+        function openAddSiteModal() {
+            editingIndex = -1;
+            document.getElementById('modalTitle').textContent = 'Nova Ferramenta';
+            document.getElementById('siteName').value = '';
+            document.getElementById('siteDescription').value = '';
+            document.getElementById('siteCode').value = '';
+            document.getElementById('siteModal').style.display = 'block';
+        }
 
-    list.forEach(site => {
-      const card = document.createElement('div');
-      card.className = 'sv-card';
+        function editSite(index) {
+            if (index < 0 || index >= sites.length) return;
+            editingIndex = index;
+            const site = sites[index];
+            document.getElementById('modalTitle').textContent = 'Editar Ferramenta';
+            document.getElementById('siteName').value = site.name;
+            document.getElementById('siteDescription').value = site.description || '';
+            document.getElementById('siteCode').value = site.code;
+            document.getElementById('siteModal').style.display = 'block';
+        }
 
-      // Thumbnail – sandbox mínimo (sem allow-same-origin)
-      // → scripts visuais rodam, mas storage bloqueado = seguro
-      const pWrap = document.createElement('div');
-      pWrap.className = 'sv-card-preview';
-      pWrap.title = 'Clique para abrir em tela cheia';
+        function deleteSite(index) {
+            if (index < 0 || index >= sites.length) return;
+            if (confirm(`Excluir "${sites[index].name}" permanentemente?`)) {
+                sites.splice(index, 1);
+                if (lastOpenedSiteIndex === index) { lastOpenedSiteIndex = -1; localStorage.removeItem('lastOpenedSiteIndex'); } 
+                else if (lastOpenedSiteIndex > index) { lastOpenedSiteIndex--; localStorage.setItem('lastOpenedSiteIndex', lastOpenedSiteIndex.toString()); }
+                saveSites(); renderSites();
+            }
+        }
 
-      const pFrame = document.createElement('iframe');
-      pFrame.sandbox = 'allow-scripts';
-      pFrame.srcdoc  = site.code;
-      pFrame.setAttribute('aria-hidden','true');
-      pFrame.setAttribute('tabindex','-1');
+        function editCurrentSite() {
+            if (currentSiteIndex >= 0 && currentSiteIndex < sites.length) {
+                const idx = currentSiteIndex;
+                closeFullscreen();
+                setTimeout(() => editSite(idx), 100);
+            }
+        }
 
-      const pOver = document.createElement('div');
-      pOver.className = 'sv-card-preview-overlay';
-      pWrap.append(pFrame, pOver);
-      pWrap.addEventListener('click', () => openViewer(site.id));
+        function closeSiteModal() { document.getElementById('siteModal').style.display = 'none'; }
 
-      // Body
-      const body = document.createElement('div');
-      body.className = 'sv-card-body';
-      body.innerHTML = `<div class="sv-card-name">${esc(site.name)}</div>
-        <div class="sv-card-meta">${fmtDate(site.createdAt)} · ${fmtSize(site.code)}</div>`;
-      body.addEventListener('click', () => openViewer(site.id));
+        document.getElementById('siteForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const siteData = {
+                name: document.getElementById('siteName').value,
+                description: document.getElementById('siteDescription').value,
+                code: document.getElementById('siteCode').value
+            };
+            if (editingIndex >= 0) sites[editingIndex] = siteData; 
+            else sites.push(siteData);
+            saveSites(); renderSites(); closeSiteModal();
+        });
 
-      // Ações
-      const acts = document.createElement('div');
-      acts.className = 'sv-card-actions';
-      function mkBtn(cls, label, fn) {
-        const b = document.createElement('button');
-        b.className = 'sv-btn ' + cls;
-        b.textContent = label;
-        b.onclick = fn;
-        return b;
-      }
-      acts.append(
-        mkBtn('sv-btn-ghost',   '✏ Editar',  () => openEdit(site.id)),
-        mkBtn('sv-btn-success', '⬇ Export',  () => exportOne(site.id)),
-        mkBtn('sv-btn-ghost',   '⬆ Import',  () => { $('sv-file-one').value=''; $('sv-file-one').click(); }),
-        mkBtn('sv-btn-danger',  '🗑',         () => askDelete(site.id, site.name))
-      );
+        // Fechar modais ao clicar fora
+        window.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+        });
 
-      card.append(pWrap, body, acts);
-      $('sv-grid').appendChild(card);
-    });
-  }
+        // ==========================================
+        // BUSCA (Texto e Voz)
+        // ==========================================
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            const term = e.target.value;
+            document.getElementById('clearSearch').style.display = term.trim() ? 'block' : 'none';
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => filterSites(term), 300);
+        });
 
-  async function loadSites() {
-    _sites = await dbGetAll();
-    _sites.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    renderGrid();
-  }
+        document.getElementById('clearSearch').addEventListener('click', function () {
+            const input = document.getElementById('searchInput');
+            input.value = ''; this.style.display = 'none';
+            renderSites(); input.focus();
+        });
 
-  // ── Modal adicionar/editar ───────────────────────────────────
-  function openAdd() {
-    _editId = null;
-    $('sv-modal-title').textContent = 'Novo Site';
-    $('sv-input-name').value = '';
-    $('sv-input-code').value = '';
-    $('sv-modal-overlay').classList.add('active');
-    setTimeout(() => $('sv-input-name').focus(), 60);
-  }
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'pt-BR'; recognition.interimResults = false; recognition.maxAlternatives = 1;
+            recognition.onresult = function (e) {
+                const transcript = e.results[0][0].transcript.trim();
+                document.getElementById('searchInput').value = transcript;
+                document.getElementById('clearSearch').style.display = 'block';
+                filterSites(transcript);
+            };
+            function startVoiceSearch() { recognition.start(); }
+        } else {
+            function startVoiceSearch() { alert('Busca por voz não suportada neste navegador.'); }
+        }
 
-  async function openEdit(id) {
-    const site = await dbGet(id);
-    if (!site) return;
-    _editId = id;
-    $('sv-modal-title').textContent = 'Editar Site';
-    $('sv-input-name').value = site.name;
-    $('sv-input-code').value = site.code;
-    $('sv-modal-overlay').classList.add('active');
-    setTimeout(() => $('sv-input-name').focus(), 60);
-  }
+        // ==========================================
+        // EXPORTAÇÃO E IMPORTAÇÃO (Lógica Limpa)
+        // ==========================================
+        function normalizeText(t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+        function sanitizeFilename(name) { return name.replace(/[^a-z0-9]/gi, '_').toLowerCase(); }
 
-  function closeModal() { $('sv-modal-overlay').classList.remove('active'); }
+        // --- Exportar Tudo ---
+        function openExportModal() { document.getElementById('exportModal').style.display = 'block'; }
+        function closeExportModal() { document.getElementById('exportModal').style.display = 'none'; }
 
-  async function save() {
-    const name = $('sv-input-name').value.trim();
-    const code = $('sv-input-code').value.trim();
-    if (!name) { toast('⚠ Dê um nome ao site.'); return; }
-    if (!code) { toast('⚠ Cole o código HTML.'); return; }
-    const now = Date.now();
-    const rec = { name, code };
-    if (_editId !== null) {
-      const old = await dbGet(_editId);
-      rec.id = _editId;
-      rec.createdAt = old?.createdAt || now;
-      rec.updatedAt = now;
-    } else {
-      rec.createdAt = now;
-    }
-    await dbPut(rec);
-    closeModal();
-    await loadSites();
-    toast(_editId !== null ? '✅ Site atualizado!' : '✅ Site salvo!');
-  }
+        function exportSitesJSON() {
+            const blob = new Blob([JSON.stringify(sites, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'backup_ferramentas.json'; link.click();
+            closeExportModal();
+        }
 
-  // ── Delete ───────────────────────────────────────────────────
-  function askDelete(id, name) {
-    _delId = id;
-    $('sv-del-name').textContent = name;
-    $('sv-confirm-overlay').classList.add('active');
-  }
-  function closeConfirm() {
-    $('sv-confirm-overlay').classList.remove('active');
-    _delId = null;
-  }
-  async function confirmDelete() {
-    if (_delId === null) return;
-    await dbDel(_delId);
-    closeConfirm();
-    await loadSites();
-    toast('🗑 Site apagado.');
-  }
+        function exportSitesZip() {
+            if (typeof JSZip === 'undefined') { alert('Erro: Biblioteca ZIP não carregada.'); return; }
+            const zip = new JSZip();
+            zip.file("sites_backup.json", JSON.stringify(sites, null, 2));
+            sites.forEach(site => zip.file(`${sanitizeFilename(site.name)}.html`, site.code));
+            
+            zip.generateAsync({ type: "blob" }).then(content => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = "minhas_ferramentas.zip"; link.click();
+            });
+            closeExportModal();
+        }
 
-  // ── Viewer ───────────────────────────────────────────────────
-  // Usa srcdoc com sandbox completo (allow-same-origin incluído).
-  // O site interno recebe TODAS as APIs do browser normalmente.
-  //
-  // Proteção do gerenciador:
-  //   1. Todo o estado e lógica está numa IIFE — window.SV só
-  //      expõe métodos de UI, sem acesso ao banco nem ao estado.
-  //   2. O banco do gerenciador usa nome único "SiteVaultDB_v3"
-  //      com store "sv_sites" — colisão de nome improvável.
-  //   3. CSS do iframe é completamente isolado (documento separado).
-  //   4. O site interno não sabe que está dentro de um gerenciador.
-  //
-  async function openViewer(id) {
-    const site = await dbGet(id);
-    if (!site) return;
+        // --- NOVO: Exportar Um Único Site (HTML, JSON, ZIP) ---
+        function openExportSingleModal(index) {
+            siteToExportIndex = index;
+            document.getElementById('exportSingleModal').style.display = 'block';
+        }
+        function closeExportSingleModal() {
+            siteToExportIndex = -1;
+            document.getElementById('exportSingleModal').style.display = 'none';
+        }
 
-    const frame = $('sv-viewer-frame');
+        function executeExportSingle(format) {
+            if (siteToExportIndex < 0 || siteToExportIndex >= sites.length) return;
+            
+            const site = sites[siteToExportIndex];
+            const safeName = sanitizeFilename(site.name);
+            const link = document.createElement('a');
 
-    // Limpa o frame antes de carregar novo conteúdo
-    frame.removeAttribute('srcdoc');
-    frame.srcdoc = '';
+            if (format === 'html') {
+                const blob = new Blob([site.code], { type: 'text/html' });
+                link.href = URL.createObjectURL(blob);
+                link.download = `${safeName}.html`;
+                link.click();
+            } 
+            else if (format === 'json') {
+                // Exporta como array para ser compatível com a importação depois
+                const blob = new Blob([JSON.stringify([site], null, 2)], { type: 'application/json' });
+                link.href = URL.createObjectURL(blob);
+                link.download = `${safeName}.json`;
+                link.click();
+            } 
+            else if (format === 'zip') {
+                if (typeof JSZip === 'undefined') { alert('Erro: ZIP não carregado.'); return; }
+                const zip = new JSZip();
+                zip.file(`${safeName}.html`, site.code);
+                zip.file(`${safeName}_backup.json`, JSON.stringify([site], null, 2));
+                zip.generateAsync({ type: "blob" }).then(content => {
+                    link.href = URL.createObjectURL(content);
+                    link.download = `${safeName}.zip`;
+                    link.click();
+                });
+            }
+            closeExportSingleModal();
+        }
 
-    // Pequeno tick para o browser resetar o frame
-    await new Promise(r => setTimeout(r, 30));
+        // --- Importação Universal (ZIP ou JSON) ---
+        function handleUniversalImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
 
-    $('sv-viewer-title').textContent = site.name;
-    frame.srcdoc = site.code;
-    $('sv-viewer').classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
+            if (ext === 'json') processJSONImport(file);
+            else if (ext === 'zip') processZIPImport(file);
+            else alert("Formato inválido. Use .zip ou .json");
+            
+            event.target.value = ''; // Reset input
+        }
 
-  function closeViewer() {
-    const frame = $('sv-viewer-frame');
-    $('sv-viewer').classList.remove('active');
-    // Mata o documento do iframe de forma segura
-    frame.srcdoc = '';
-    document.body.style.overflow = '';
-  }
+        function processJSONImport(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        if (confirm('Adicionar aos existentes?\n[OK] = Sim, misturar\n[Cancelar] = Não, substituir tudo')) {
+                            sites = sites.concat(imported);
+                        } else { sites = imported; }
+                        saveSites(); renderSites(); alert('Importado com sucesso!');
+                    } else alert('JSON inválido!');
+                } catch (err) { alert('Erro JSON: ' + err.message); }
+            };
+            reader.readAsText(file);
+        }
 
-  // ── Export/Import ────────────────────────────────────────────
-  async function exportAll() {
-    const sites = await dbGetAll();
-    if (!sites.length) { toast('Nenhum site para exportar.'); return; }
-    dlJSON({ version:3, sites }, `sitevault-backup-${Date.now()}.json`);
-    toast(`⬇ ${sites.length} site(s) exportados.`);
-  }
+        async function processZIPImport(file) {
+            if (typeof JSZip === 'undefined') return;
+            try {
+                const zip = new JSZip();
+                const contents = await zip.loadAsync(file);
+                let backupFile = Object.keys(contents.files).find(n => n.endsWith('_backup.json') || n === 'sites_backup.json');
 
-  async function exportOne(id) {
-    const site = await dbGet(id);
-    if (!site) return;
-    dlJSON({ version:3, sites:[site] }, `${site.name.replace(/\s+/g,'_')}.sitevault.json`);
-    toast(`⬇ "${site.name}" exportado.`);
-  }
+                if (backupFile) {
+                    const text = await contents.files[backupFile].async("string");
+                    const imported = JSON.parse(text);
+                    if (Array.isArray(imported)) {
+                        let msg = imported.length === 1 ? `Backup de "${imported[0].name}" encontrado. Importar?` : 'Backup completo encontrado. Substituir tudo?';
+                        if (confirm(msg)) {
+                            if(imported.length === 1) sites = sites.concat(imported);
+                            else sites = imported;
+                            saveSites(); renderSites(); alert('Importado com sucesso!');
+                        }
+                    }
+                } else {
+                    const newSites = [];
+                    for (let name of Object.keys(contents.files)) {
+                        if (name.endsWith('.html')) {
+                            const html = await contents.files[name].async("string");
+                            newSites.push({ name: name.replace('.html', '').replace(/_/g, ' '), description: 'Importado', code: html });
+                        }
+                    }
+                    if (newSites.length > 0 && confirm(`Achamos ${newSites.length} HTMLs no ZIP. Adicionar?`)) {
+                        sites = sites.concat(newSites); saveSites(); renderSites(); alert('Extraído com sucesso!');
+                    } else if (newSites.length === 0) alert('Nenhum dado válido no ZIP.');
+                }
+            } catch (err) { alert('Erro ZIP: ' + err.message); }
+        }
 
-  function importAll() { $('sv-file-all').value=''; $('sv-file-all').click(); }
-
-  async function handleImportAll(e) {
-    const file = e.target.files[0]; if (!file) return;
-    try {
-      const data = JSON.parse(await file.text());
-      if (!Array.isArray(data.sites)) throw 0;
-      let n = 0;
-      for (const s of data.sites) {
-        if (!s.name || !s.code) continue;
-        // Sem id → auto-increment gera novo (sem colisão)
-        await dbPut({ name:s.name, code:s.code, createdAt:s.createdAt||Date.now() });
-        n++;
-      }
-      await loadSites();
-      toast(`✅ ${n} site(s) importados.`);
-    } catch { toast('⚠ Arquivo inválido.'); }
-  }
-
-  async function handleImportOne(e) {
-    const file = e.target.files[0]; if (!file) return;
-    try {
-      const data = JSON.parse(await file.text());
-      const s = (data.sites||[])[0];
-      if (!s?.name || !s?.code) throw 0;
-      await dbPut({ name:s.name, code:s.code, createdAt:s.createdAt||Date.now() });
-      await loadSites();
-      toast(`✅ "${s.name}" importado.`);
-    } catch { toast('⚠ Arquivo inválido.'); }
-  }
-
-  // ── Eventos globais ──────────────────────────────────────────
-  $('sv-search').addEventListener('input', function() { _query=this.value; renderGrid(); });
-  $('sv-file-all').addEventListener('change', handleImportAll);
-  $('sv-file-one').addEventListener('change', handleImportOne);
-
-  $('sv-modal-overlay').addEventListener('click', e => {
-    if (e.target === $('sv-modal-overlay')) closeModal();
-  });
-  $('sv-confirm-overlay').addEventListener('click', e => {
-    if (e.target === $('sv-confirm-overlay')) closeConfirm();
-  });
-
-  document.addEventListener('keydown', e => {
-    if (e.key !== 'Escape') return;
-    if ($('sv-viewer').classList.contains('active'))               closeViewer();
-    else if ($('sv-confirm-overlay').classList.contains('active')) closeConfirm();
-    else if ($('sv-modal-overlay').classList.contains('active'))   closeModal();
-  });
-
-  // ── Init ─────────────────────────────────────────────────────
-  loadSites();
-
-  // Apenas métodos de UI são públicos — estado e DB são privados
-  return { openAdd, openEdit, closeModal, save,
-           askDelete, closeConfirm, confirmDelete,
-           closeViewer, exportAll, exportOne, importAll };
-})();
-</script>
+        // ==========================================
+        // PWA E STATUS
+        // ==========================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Erro:', err));
+            });
+        }
+        
+        function updateOnlineStatus() {
+            const ind = document.getElementById('offlineIndicator');
+            ind.style.display = navigator.onLine ? 'none' : 'inline-block';
+        }
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        
+        // Iniciar
+        window.addEventListener('load', () => {
+            updateOnlineStatus();
+            loadSites();
+        });
+    </script>
 </body>
 </html>
