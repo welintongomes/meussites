@@ -1,7 +1,9 @@
-const CACHE_NAME = 'sites-manager-v11';
+const CACHE_NAME = 'sites-manager-v7';
 const urlsToCache = [
   './',
-  './index.html'
+  './index.html',
+  './jszip.min.js'
+
 ];
 
 // Instalar o Service Worker
