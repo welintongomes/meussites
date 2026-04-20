@@ -17,781 +17,146 @@
 
     <script src="jszip.min.js"></script>
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --neon-cyan: #00ffff;
-            --neon-magenta: #ff00ff;
-            --neon-yellow: #ffff00;
-            --neon-blue: #00d4ff;
-            --dark-bg: #0a0a0a;
-            --card-bg: rgba(15, 15, 35, 0.9);
+            --neon-cyan: #00ffff; --neon-magenta: #ff00ff; --neon-yellow: #ffff00;
+            --neon-blue: #00d4ff; --dark-bg: #0a0a0a; --card-bg: rgba(15, 15, 35, 0.9);
         }
 
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background: var(--dark-bg);
-            min-height: 100vh;
-            color: var(--neon-cyan);
-            position: relative;
-            overflow-x: hidden;
-        }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--dark-bg); min-height: 100vh; color: var(--neon-cyan); position: relative; overflow-x: hidden; }
 
-        /* Fundo animado cyberpunk - APENAS DESKTOP */
         @media (min-width: 769px) {
             body::before {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background:
-                    linear-gradient(45deg, transparent 30%, rgba(255, 0, 255, 0.03) 30%, rgba(255, 0, 255, 0.03) 70%, transparent 70%),
-                    linear-gradient(-45deg, transparent 30%, rgba(0, 255, 255, 0.03) 30%, rgba(0, 255, 255, 0.03) 70%, transparent 70%);
-                background-size: 50px 50px;
-                animation: gridMove 20s linear infinite;
-                z-index: 0;
-                pointer-events: none;
+                content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;
+                background: linear-gradient(45deg, transparent 30%, rgba(255, 0, 255, 0.03) 30%, rgba(255, 0, 255, 0.03) 70%, transparent 70%),
+                            linear-gradient(-45deg, transparent 30%, rgba(0, 255, 255, 0.03) 30%, rgba(0, 255, 255, 0.03) 70%, transparent 70%);
+                background-size: 50px 50px; animation: gridMove 20s linear infinite;
             }
-
-            @keyframes gridMove {
-                0% { background-position: 0 0, 0 0; }
-                100% { background-position: 50px 50px, -50px 50px; }
-            }
-
-            /* Linhas de scan - APENAS DESKTOP */
             body::after {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(to bottom,
-                        transparent 50%,
-                        rgba(0, 255, 255, 0.02) 50%);
-                background-size: 100% 4px;
-                animation: scanlines 10s linear infinite;
-                z-index: 1;
-                pointer-events: none;
+                content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
+                background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 255, 0.02) 50%); background-size: 100% 4px; animation: scanlines 10s linear infinite;
             }
-
-            @keyframes scanlines {
-                0% { background-position: 0 0; }
-                100% { background-position: 0 100%; }
-            }
+            @keyframes gridMove { 0% { background-position: 0 0, 0 0; } 100% { background-position: 50px 50px, -50px 50px; } }
+            @keyframes scanlines { 0% { background-position: 0 0; } 100% { background-position: 0 100%; } }
         }
 
-        /* Background simples para mobile - SEM ANIMAÇÕES */
-        @media (max-width: 768px) {
-            body {
-                background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
-            }
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+        .header { text-align: center; margin-bottom: 10px; color: white; }
+        .header h1 { font-family: 'Orbitron', sans-serif; font-size: 2.5em; margin-bottom: 0px; background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.3), 0 0 30px rgba(0, 255, 255, 0.2); animation: glitchText 3s infinite; letter-spacing: 3px; }
+        @keyframes glitchText { 0%, 90%, 100% { transform: translate(0); } 92% { transform: translate(-2px, 2px); } 94% { transform: translate(2px, -2px); } 96% { transform: translate(-2px, -2px); } }
+        .header p { font-size: 1.1em; opacity: 0.9; color: var(--neon-blue); text-transform: uppercase; letter-spacing: 5px; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-            color: white;
-        }
-
-        .header h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5em;
-            margin-bottom: 0px;
-            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow:
-                0 0 10px rgba(0, 255, 255, 0.5),
-                0 0 20px rgba(255, 0, 255, 0.3),
-                0 0 30px rgba(0, 255, 255, 0.2);
-            animation: glitchText 3s infinite;
-            letter-spacing: 3px;
-        }
-
-        @keyframes glitchText {
-            0%, 90%, 100% { transform: translate(0); }
-            92% { transform: translate(-2px, 2px); }
-            94% { transform: translate(2px, -2px); }
-            96% { transform: translate(-2px, -2px); }
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-            color: var(--neon-blue);
-            text-transform: uppercase;
-            letter-spacing: 5px;
-        }
-
-        .sites-grid {
-            padding: 5.3px 3px 10px 5px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            min-height: 200px;
-            max-height: 71.7vh;
-            overflow-y: auto;
-        }
-
-        /* Scrollbar customizada */
+        .sites-grid { padding: 5.3px 3px 10px 5px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; min-height: 200px; max-height: 71.7vh; overflow-y: auto; }
         .sites-grid::-webkit-scrollbar { width: 4px; }
         .sites-grid::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.5); border-radius: 10px; }
-        .sites-grid::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--neon-cyan), var(--neon-magenta));
-            border-radius: 10px;
-            box-shadow: 0 0 10px var(--neon-cyan);
-        }
+        .sites-grid::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-cyan), var(--neon-magenta)); border-radius: 10px; box-shadow: 0 0 10px var(--neon-cyan); }
 
-        .site-card {
-            margin-top: 5px;
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 9px;
-            border: 2px solid transparent;
-            background-image:
-                linear-gradient(var(--card-bg), var(--card-bg)),
-                linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-            box-shadow:
-                0 0 20px rgba(0, 255, 255, 0.1),
-                inset 0 0 20px rgba(0, 255, 255, 0.05);
-                /* NOVA LINHA: Otimização de GPU para não travar o celular no Scroll */
-            will-change: transform, box-shadow;
-        }
-
-        /* Efeito de scan no hover */
-        .site-card::before {
-            content: '';
-            position: absolute;
-            top: -100%;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom,
-                    transparent,
-                    rgba(0, 255, 255, 0.2),
-                    transparent);
-            transition: top 0.6s;
-        }
-
+        .site-card { margin-top: 5px; background: var(--card-bg); border-radius: 15px; padding: 9px; border: 2px solid transparent; background-image: linear-gradient(var(--card-bg), var(--card-bg)), linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta)); background-origin: border-box; background-clip: padding-box, border-box; cursor: pointer; transition: all 0.4s ease; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05); will-change: transform, box-shadow; }
+        .site-card::before { content: ''; position: absolute; top: -100%; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent, rgba(0, 255, 255, 0.2), transparent); transition: top 0.6s; }
         .site-card:hover::before { top: 100%; }
+        .site-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--neon-cyan); box-shadow: 0 0 40px rgba(0, 255, 255, 0.4), 0 0 60px rgba(255, 0, 255, 0.2), inset 0 0 30px rgba(0, 255, 255, 0.1); }
+        .site-card h3 { font-family: 'Orbitron', sans-serif; font-size: 1.4em; margin-bottom: 10px; color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); letter-spacing: 2px; white-space: normal; word-break: break-word; overflow-wrap: break-word; cursor: pointer; transition: all 0.3s ease; display: inline-block; }
+        .site-card h3:hover { color: #ffffff; text-shadow: 0 0 20px var(--neon-cyan), 0 0 30px var(--neon-magenta); transform: scale(1.02); }
+        .site-card p { color: rgba(255, 255, 255, 0.7); margin-bottom: 15px; font-size: 1.1em; line-height: 1.5; }
+        .site-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; }
 
-        .site-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: var(--neon-cyan);
-            box-shadow:
-                0 0 40px rgba(0, 255, 255, 0.4),
-                0 0 60px rgba(255, 0, 255, 0.2),
-                inset 0 0 30px rgba(0, 255, 255, 0.1);
-        }
-
-        .site-card h3 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.4em;
-            margin-bottom: 10px;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-            letter-spacing: 2px;
-            white-space: normal;
-            word-break: break-word;
-            overflow-wrap: break-word;
-            cursor: pointer; /* Adicionado: Mostra a mãozinha de clique */
-            transition: all 0.3s ease; /* Adicionado: Deixa a mudança de cor suave */
-            display: inline-block; /* Garante que o clique seja só no texto */
-        }
-
-        /* Adicionado: Brilho forte ao passar o dedo/mouse no título */
-        .site-card h3:hover {
-            color: #ffffff;
-            text-shadow: 0 0 20px var(--neon-cyan), 0 0 30px var(--neon-magenta);
-            transform: scale(1.02);
-        }
-
-        .site-card p {
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 15px;
-            font-size: 1.1em;
-            line-height: 1.5;
-        }
-
-        .site-actions {
-    /* margin-left: 2px; */
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: nowrap;
-}
-
-        .btn {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
-            padding: 8px 16px;
-            border: 2px solid;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-family: 'Rajdhani', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: transparent;
-            position: relative;
-            overflow: hidden;
-            /* NOVA LINHA: Otimização de GPU */
-            will-change: transform, box-shadow;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
+        .btn { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8); padding: 8px 16px; border: 2px solid; border-radius: 8px; cursor: pointer; font-size: 0.9em; transition: all 0.3s ease; font-weight: 500; font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; background: transparent; position: relative; overflow: hidden; will-change: transform, box-shadow; }
+        .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
         .btn:hover::before { width: 300px; height: 300px; }
+        .btn-primary { border-color: var(--neon-cyan); color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); }
+        .btn-primary:hover { background: var(--neon-cyan); color: var(--dark-bg); box-shadow: 0 0 20px var(--neon-cyan), 0 0 40px rgba(0, 255, 255, 0.5); transform: translateY(-2px); }
+        .btn-secondary { border-color: var(--neon-blue); color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
+        .btn-secondary:hover { background: var(--neon-blue); color: var(--dark-bg); box-shadow: 0 0 20px var(--neon-blue), 0 0 40px rgba(0, 212, 255, 0.5); transform: translateY(-2px); }
+        .btn-danger { background: transparent; border-color: #ff0055; color: #ff0055; box-shadow: 0 0 10px rgba(255, 0, 85, 0.3); }
+        .btn-danger:hover { background: #ff0055; color: white; box-shadow: 0 0 20px #ff0055, 0 0 40px rgba(255, 0, 85, 0.5); transform: translateY(-2px); }
 
-        .btn-primary {
-            border-color: var(--neon-cyan);
-            color: var(--neon-cyan);
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-        }
+        .add-site-btn { position: fixed; bottom: 1%; right: 5%; width: 60px; height: 60px; border-radius: 38%; background: linear-gradient(135deg, var(--neon-magenta), #ff0055); border: 3px solid var(--neon-magenta); color: white; font-size: 24px; cursor: pointer; box-shadow: 0 0 30px rgba(255, 0, 255, 0.6), 0 0 60px rgba(255, 0, 255, 0.3); transition: all 0.3s ease; z-index: 1000; font-weight: bold; }
+        .add-site-btn:hover { transform: scale(1.15) rotate(90deg); box-shadow: 0 0 50px var(--neon-magenta), 0 0 100px rgba(255, 0, 255, 0.5); }
+        .search-random-btn { position: fixed; bottom: 0.9%; right: 11%; width: 60px; height: 60px; border-radius: 38%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue)); border: 3px solid var(--neon-cyan); color: var(--dark-bg); font-size: 28px; cursor: pointer; box-shadow: 0 0 30px rgba(0, 255, 255, 0.6), 0 0 60px rgba(0, 255, 255, 0.3); transition: all 0.3s ease; z-index: 1000; }
+        .search-random-btn:hover { transform: scale(1.15); box-shadow: 0 0 50px var(--neon-cyan), 0 0 100px rgba(0, 255, 255, 0.5); }
 
-        .btn-primary:hover {
-            background: var(--neon-cyan);
-            color: var(--dark-bg);
-            box-shadow: 0 0 20px var(--neon-cyan), 0 0 40px rgba(0, 255, 255, 0.5);
-            transform: translateY(-2px);
-        }
+        .btnInExp { width: 85%; position: fixed; bottom: 18px; left: 12px; display: flex; z-index: 1000; flex-direction: column; }
+        .fundo { position: relative; left: 15%; }
 
-        .btn-secondary {
-            border-color: var(--neon-blue);
-            color: var(--neon-blue);
-            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-        }
-
-        .btn-secondary:hover {
-            background: var(--neon-blue);
-            color: var(--dark-bg);
-            box-shadow: 0 0 20px var(--neon-blue), 0 0 40px rgba(0, 212, 255, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .add-site-btn {
-            position: fixed;
-            bottom: 1%;
-            right: 5%;
-            width: 60px;
-            height: 60px;
-            border-radius: 38%;
-            background: linear-gradient(135deg, var(--neon-magenta), #ff0055);
-            border: 3px solid var(--neon-magenta);
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.6),
-                        0 0 60px rgba(255, 0, 255, 0.3);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            font-weight: bold;
-        }
-
-        .add-site-btn:hover {
-            transform: scale(1.15) rotate(90deg);
-            box-shadow:
-                0 0 50px var(--neon-magenta),
-                0 0 100px rgba(255, 0, 255, 0.5);
-        }
-
-        .search-random-btn {
-            position: fixed;
-            bottom: 0.9%;
-            right: 11%;
-            width: 60px;
-            height: 60px;
-            border-radius: 38%;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
-            border: 3px solid var(--neon-cyan);
-            color: var(--dark-bg);
-            font-size: 28px;
-            cursor: pointer;
-            box-shadow:
-                0 0 30px rgba(0, 255, 255, 0.6),
-                0 0 60px rgba(0, 255, 255, 0.3);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .search-random-btn:hover {
-            transform: scale(1.15);
-            box-shadow:
-                0 0 50px var(--neon-cyan),
-                0 0 100px rgba(0, 255, 255, 0.5);
-        }
-
-        .fullscreen-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000000;
-            z-index: 9999;
-        }
-
-        .fullscreen-content {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .fullscreen-header {
-            background: linear-gradient(135deg, rgba(15, 15, 35, 0.95), rgba(30, 0, 50, 0.95));
-            color: var(--neon-cyan);
-            padding: 3px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: normal;
-            border-bottom: 2px solid var(--neon-cyan);
-            box-shadow: 0 5px 30px rgba(0, 255, 255, 0.3);
-        }
-
-        .fullscreen-header h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.3em;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        .close-btn {
-            background: transparent;
-            border: 2px solid #ff0055;
-            color: #ff0055;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-        }
-
-        .close-btn:hover {
-            background: #ff0055;
-            color: white;
-            box-shadow: 0 0 20px #ff0055;
-        }
-
-        .edit-btn {
-            background: transparent;
-            border: 2px solid var(--neon-magenta);
-            color: var(--neon-magenta);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-        }
-
-        .edit-btn:hover {
-            background: var(--neon-magenta);
-            color: var(--dark-bg);
-            box-shadow: 0 0 20px var(--neon-magenta);
-        }
-
-        .site-frame {
-            flex: 1;
-            border: none;
-            background: white;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 3000;
-            backdrop-filter: blur(10px);
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 2px solid var(--neon-cyan);
-            box-shadow:
-                0 0 50px rgba(0, 255, 255, 0.4),
-                0 0 100px rgba(255, 0, 255, 0.2);
-        }
-
-        .modal-content h2 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--neon-cyan);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        .form-group { margin-bottom: 20px; }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--neon-blue);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            white-space: pre;
-            width: 100%;
-            padding: 12px;
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-        }
-
-        .form-group textarea {
-            font-size: 12px;
-            height: 156px;
-            font-family: 'Courier New', monospace;
-            resize: vertical;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        #clearSearch {
-            position: absolute;
-            left: 14.6%;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--neon-cyan);
-            cursor: pointer;
-            display: none;
-            font-size: 32px;
-            font-weight: bold;
-            width: 46px;
-            height: 40px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        #clearSearch:hover {
-            background: rgba(0, 255, 255, 0.2);
-            color: var(--neon-magenta);
-            transform: translateY(-50%) rotate(90deg);
-        }
-
-        .search-container {
-            width: 90%;
-            margin-bottom: 20px;
-            position: relative;
-            display: inline-block;
-        }
-
-        #searchInput {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 20px;
-            position: relative;
-            left: 14%;
-            padding: 7px 5px 7px 38px;
-            width: 100%;
-            border-radius: 25px;
-            background: rgba(15, 15, 35, 0.8);
-            border: 2px solid var(--neon-cyan);
-            color: var(--neon-cyan);
-            outline: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2),
-                        inset 0 0 20px rgba(0, 255, 255, 0.1);
-        }
-
+        .search-container { width: 90%; margin-bottom: 20px; position: relative; display: inline-block; }
+        #searchInput { font-family: 'Rajdhani', sans-serif; font-size: 20px; position: relative; left: 14%; padding: 7px 5px 7px 38px; width: 100%; border-radius: 25px; background: rgba(15, 15, 35, 0.8); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); outline: none; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), inset 0 0 20px rgba(0, 255, 255, 0.1); }
         #searchInput::placeholder { color: rgba(0, 255, 255, 0.5); }
-        #searchInput:focus {
-            border-color: var(--neon-magenta);
-            box-shadow:
-                0 0 30px rgba(255, 0, 255, 0.4),
-                inset 0 0 30px rgba(255, 0, 255, 0.1);
-        }
+        #searchInput:focus { border-color: var(--neon-magenta); box-shadow: 0 0 30px rgba(255, 0, 255, 0.4), inset 0 0 30px rgba(255, 0, 255, 0.1); }
+        #clearSearch { position: absolute; left: 14.6%; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--neon-cyan); cursor: pointer; display: none; font-size: 32px; font-weight: bold; width: 46px; height: 40px; border-radius: 50%; transition: all 0.3s ease; }
+        #clearSearch:hover { background: rgba(0, 255, 255, 0.2); color: var(--neon-magenta); transform: translateY(-50%) rotate(90deg); }
 
-        .btnInExp {
-            width: 85%;
-            position: fixed;
-            bottom: 18px;
-            left: 12px;
-            display: flex;
-            z-index: 1000;
-            flex-direction: column;
-        }
+        .fullscreen-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000000; z-index: 9999; }
+        .fullscreen-content { width: 100%; height: 100%; display: flex; flex-direction: column; }
+        .fullscreen-header { background: linear-gradient(135deg, rgba(15, 15, 35, 0.95), rgba(30, 0, 50, 0.95)); color: var(--neon-cyan); padding: 3px 20px; display: flex; justify-content: space-between; align-items: normal; border-bottom: 2px solid var(--neon-cyan); box-shadow: 0 5px 30px rgba(0, 255, 255, 0.3); }
+        .fullscreen-header h2 { font-family: 'Orbitron', sans-serif; font-size: 1.3em; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+        
+        .close-btn { background: transparent; border: 2px solid #ff0055; color: #ff0055; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase; transition: all 0.3s ease; }
+        .close-btn:hover { background: #ff0055; color: white; box-shadow: 0 0 20px #ff0055; }
+        .edit-btn { background: transparent; border: 2px solid var(--neon-magenta); color: var(--neon-magenta); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase; transition: all 0.3s ease; }
+        .edit-btn:hover { background: var(--neon-magenta); color: var(--dark-bg); box-shadow: 0 0 20px var(--neon-magenta); }
+        .site-frame { flex: 1; border: none; background: white; }
 
-        .fundo {
-            position: relative;
-            left: 15%;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 3000; backdrop-filter: blur(10px); }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); padding: 30px; border-radius: 15px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border: 2px solid var(--neon-cyan); box-shadow: 0 0 50px rgba(0, 255, 255, 0.4), 0 0 100px rgba(255, 0, 255, 0.2); }
+        .modal-content h2 { font-family: 'Orbitron', sans-serif; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--neon-blue); text-transform: uppercase; letter-spacing: 1px; }
+        .form-group input, .form-group textarea { white-space: pre; width: 100%; padding: 12px; border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 8px; font-size: 1em; transition: border-color 0.3s ease; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
+        .form-group textarea { font-size: 12px; height: 156px; font-family: 'Courier New', monospace; resize: vertical; }
+        .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        #offlineIndicator { border-radius: 50px; font-size: 12px; height: 21px; width: 30%; background: linear-gradient(90deg, #ff0055, var(--neon-magenta)); color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 20px rgba(255, 0, 255, 0.5); }
 
-        .btn-danger {
-            background: transparent;
-            border-color: #ff0055;
-            color: #ff0055;
-            box-shadow: 0 0 10px rgba(255, 0, 85, 0.3);
-        }
-
-        .btn-danger:hover {
-            background: #ff0055;
-            color: white;
-            box-shadow: 0 0 20px #ff0055, 0 0 40px rgba(255, 0, 85, 0.5);
-            transform: translateY(-2px);
-        }
-
-        #offlineIndicator {
-            border-radius: 50px;
-            font-size: 12px;
-            height: 21px;
-            width: 30%;
-            background: linear-gradient(90deg, #ff0055, var(--neon-magenta));
-            color: white;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
-        }
-
-        @media (max-width: 768px) {
-            .container { padding: 15px; }
-            .header {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                z-index: 1000;
-                padding: 10px 20px;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            }
-            .header h1 { font-size: 1.5em; }
-            .modal-content { padding: 20px; width: 95%; }
-
-            .search-random-btn {
-                position: fixed;
-                bottom: 73px;
-                left: 25px;
-                width: 60px;
-                height: 48px;
-                border-radius: 38%;
-                background: linear-gradient(45deg, #1e90ff, #3742fa);
-                border: none;
-                color: white;
-                font-size: 20px;
-                cursor: pointer;
-                box-shadow: 0 4px 20px rgba(30, 144, 255, 0.4);
-                transition: all 0.3s ease;
-                z-index: 1000;
-            }
-
-            .add-site-btn {
-                bottom: 14px;
-                left: 25px;
-                width: 60px;
-                height: 48px;
-                font-size: 20px;
-                box-shadow: 0 4px 20px rgba(255, 107, 107, 0.4);
-            }
-
-        .btnInExp {
-            width: 85%;
-            position: fixed;
-            bottom: 18px;
-            left: 12px;
-            display: flex;
-            z-index: 1000;
-            flex-direction: column;
-        }
-
-        #clearSearch {
-            padding: 2px 16px 11px 6px;
-            position: absolute;
-            left: 83px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: rgb(153, 153, 153);
-            cursor: pointer;
-            display: none;
-            font-size: 30px;
-            font-weight: bold;
-        }
-
-        .site-card {
-            margin-top: 5px;
-            background-image: linear-gradient(var(--card-bg), var(--card-bg)),
-                            linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
-            border-radius: 15px;
-            padding: 7px 20px 7px 20px;
-            box-shadow: 0 13px 10px rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        #searchInput {
-            font-size: 20px;
-            position: relative;
-            left: 80px;
-            padding: 7px 5px 7px 46px;
-            width: 97%;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-
-            .fundo { position: relative; left: 20%; }
-            .form-group textarea { font-size: 12px; height: 300px; font-family: 'Courier New', monospace; resize: vertical; }
-            .grid-wrapper { display: flex; flex-direction: column; justify-content: center; min-height: 89vh; }
-            .sites-grid {
-                padding: 30px 0px 60px 0px;
-                padding-bottom: 60px;
-                border-radius: 10px;
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 25px;
-                min-height: 200px;
-                max-height: 67vh;
-                overflow-y: auto;
-            }
-
-            .fullscreen-header {
-                gap: 13px;
-                background: linear-gradient(135deg, rgba(15, 15, 35, 0.95), rgba(30, 0, 50, 0.95));
-                color: var(--neon-cyan);
-                padding: 3px 20px;
-                display: flex;
-                flex-wrap: nowrap;
-                align-items: center;
-                justify-content: space-between;
-                border-bottom: 2px solid var(--neon-cyan);
-                box-shadow: 0 5px 30px rgba(0, 255, 255, 0.3);
-                overflow: hidden;
-            }
-
-            .fullscreen-header h2 { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .fullscreen-header .actions, .fullscreen-header button { flex-shrink: 0; white-space: nowrap; }
-
-            .edit-btn, .close-btn {
-                padding: 3px 15px;
-                font-size: 0.9em;
-            }
-            .site-actions button { padding: 5px 10px; font-size: 0.8em; }
-        }
-        /* =========================================
-           BARRA DE BUSCA E EDITOR HOLOGRÁFICO NEON
-           ========================================= */
-        .code-search-bar {
-            display: flex; gap: 8px; margin-bottom: 8px; align-items: center;
-            background: rgba(0, 255, 255, 0.05); padding: 8px; border-radius: 8px;
-            border: 1px solid rgba(0, 255, 255, 0.2); position: relative;
-        }
-        .code-search-bar input {
-            flex: 1; padding: 8px 7px 8px 40px; border-radius: 6px; font-size: 14px; outline: none;
-            background: rgba(15, 15, 35, 0.8); color: var(--neon-cyan); border: 1px solid rgba(0, 212, 255, 0.5);
-        }
+        /* BUSCA E EDITOR HOLOGRÁFICO NEON (Exatamente original) */
+        .code-search-bar { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; background: rgba(0, 255, 255, 0.05); padding: 8px; border-radius: 8px; border: 1px solid rgba(0, 255, 255, 0.2); position: relative; }
+        .code-search-bar input { flex: 1; padding: 8px 7px 8px 40px; border-radius: 6px; font-size: 14px; outline: none; background: rgba(15, 15, 35, 0.8); color: var(--neon-cyan); border: 1px solid rgba(0, 212, 255, 0.5); }
         .code-search-bar input:focus { border-color: var(--neon-magenta); box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); }
-        
-        #clearCodeSearchBtn {
-            position: absolute; left: 95px; background: none; border: none; font-size: 20px;
-            font-weight: bold; color: #ff0055; cursor: pointer; padding: 8 7px; display: none;
-        }
+        #clearCodeSearchBtn { position: absolute; left: 95px; background: none; border: none; font-size: 20px; font-weight: bold; color: #ff0055; cursor: pointer; padding: 8 7px; display: none; }
         .code-search-bar span { font-size: 13px; color: var(--neon-cyan); min-width: 45px; text-align: center; font-weight: bold; }
-        .code-search-bar button.nav-btn {
-            background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
-            border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s;
-        }
+        .code-search-bar button.nav-btn { background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
         .code-search-bar button.nav-btn:hover { background: var(--neon-cyan); color: var(--dark-bg); box-shadow: 0 0 10px var(--neon-cyan); }
-
-        .editor-wrapper {
-            position: relative; width: 100%; height: 250px; border: 2px solid rgba(0, 255, 255, 0.3);
-            border-radius: 8px; background: rgba(0, 0, 0, 0.6); overflow: hidden; transition: all 0.3s;
-        }
+        .editor-wrapper { position: relative; width: 100%; height: 250px; border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 8px; background: rgba(0, 0, 0, 0.6); overflow: hidden; transition: all 0.3s; }
         .editor-wrapper:focus-within { border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.2); }
-        
-        #siteCodeBackdrop, #siteCode {
-            width: 100% !important; height: 100% !important; padding: 12px; font-family: 'Courier New', monospace;
-            font-size: 12px; line-height: 20px; white-space: pre; overflow-wrap: normal; overflow-x: auto;
-            position: absolute; top: 0; left: 0; border: none; outline: none; margin: 0; resize: none !important;
-        }
+        #siteCodeBackdrop, #siteCode { width: 100% !important; height: 100% !important; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 20px; white-space: pre; overflow-wrap: normal; overflow-x: auto; position: absolute; top: 0; left: 0; border: none; outline: none; margin: 0; resize: none !important; }
         #siteCodeBackdrop { color: transparent; z-index: 1; pointer-events: none; }
         #siteCode { background: transparent; color: var(--neon-cyan); z-index: 2; }
-        
-        /* Cores do Marca-Texto */
         .mark-match { background-color: rgba(255, 0, 255, 0.4); color: transparent; border-radius: 3px; }
         .mark-active { background-color: rgba(0, 255, 255, 0.6); color: transparent; box-shadow: 0 0 0 2px var(--neon-cyan); }
-        
-        @media (max-width: 768px) { .editor-wrapper { height: 270px; } #clearCodeSearchBtn { left: 7px; padding: 6px 15px 4px 14px; font-size: 22px; } }
-    </style>
+
+        /* REGRAS DE MOBILE UNIFICADAS (Mantendo todas as suas posições originais) */
+        @media (max-width: 768px) {
+            body { background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%); }
+            .container { padding: 15px; }
+            .header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+            .header h1 { font-size: 1.5em; }
+            .modal-content { padding: 20px; width: 95%; }
+            .form-group textarea { font-size: 12px; height: 300px; font-family: 'Courier New', monospace; resize: vertical; }
+            .grid-wrapper { display: flex; flex-direction: column; justify-content: center; min-height: 89vh; }
+            
+            .search-random-btn { position: fixed; bottom: 73px; left: 25px; width: 48px; height: 48px; border-radius: 38%; background: linear-gradient(45deg, #1e90ff, #3742fa); border: none; color: white; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(30, 144, 255, 0.4); transition: all 0.3s ease; z-index: 1000; }
+            .add-site-btn { bottom: 73px; left: 82px; width: 48px; height: 48px; font-size: 20px; box-shadow: 0 4px 20px rgba(255, 107, 107, 0.4); }
+            .btnInExp { width: 85%; position: fixed; bottom: 18px; left: 12px; display: flex; z-index: 1000; flex-direction: column; }
+            
+            #clearSearch { padding: 2px 16px 11px 6px; position: absolute; left: 130px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgb(153, 153, 153); cursor: pointer; display: none; font-size: 30px; font-weight: bold; }
+            .site-card { margin-top: 5px; background-image: linear-gradient(var(--card-bg), var(--card-bg)), linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta)); border-radius: 15px; padding: 7px 20px 7px 20px; box-shadow: 0 13px 10px rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+            #searchInput { font-size: 20px; position: relative; left: 130px; padding: 7px 5px 7px 46px; width: 78%; border-radius: 5px; border: 1px solid #ddd; }
+            .fundo { position: relative; left: 11%; }
+            .sites-grid { padding: 30px 0px 60px 0px; padding-bottom: 60px; border-radius: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; min-height: 200px; max-height: 67vh; overflow-y: auto; }
+            
+            .fullscreen-header { gap: 13px; background: linear-gradient(135deg, rgba(15, 15, 35, 0.95), rgba(30, 0, 50, 0.95)); color: var(--neon-cyan); padding: 3px 20px; display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--neon-cyan); box-shadow: 0 5px 30px rgba(0, 255, 255, 0.3); overflow: hidden; }
+            .fullscreen-header h2 { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .fullscreen-header .actions, .fullscreen-header button { flex-shrink: 0; white-space: nowrap; }
+            .edit-btn, .close-btn { padding: 3px 15px; font-size: 0.9em; }
+            .site-actions button { padding: 5px 10px; font-size: 0.8em; }
+            
+            .editor-wrapper { height: 270px; }
+            #clearCodeSearchBtn { left: 7px; padding: 6px 15px 4px 14px; font-size: 22px; }
+        }
+</style>
 </head>
 
 <body>
@@ -806,7 +171,7 @@
         </div>
         <div class="grid-wrapper">
             <div class="sites-grid" id="sitesGrid">
-                </div>
+            </div>
         </div>
 
     </div>
@@ -817,10 +182,13 @@
             <button id="clearSearch">×</button>
         </div>
         <div class="fundo">
-            <button class="btn btn-secondary" onclick="openExportAllModal()" style="margin-left: 10px;">Exportar Sites</button>
+            <button class="btn btn-secondary" onclick="openExportAllModal()" style="margin-left: 10px;">Exportar
+                Sites</button>
             <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()"
                 style="margin-left: 10px;">Importar Sites</button>
-            <input type="file" id="importFile" accept=".json, .zip, .html" multiple style="display: none;" onchange="importSites(event)">        </div>
+            <input type="file" id="importFile" accept=".json, .zip, .html" multiple style="display: none;"
+                onchange="importSites(event)">
+        </div>
         <button class="add-site-btn" onclick="openAddSiteModal()">+</button>
         <button class="search-random-btn" onclick="startVoiceSearch()">🎤</button>
 
@@ -840,15 +208,18 @@
                     <div class="form-group">
                         <label>Código HTML:</label>
                         <div class="code-search-bar">
-                            <input type="text" id="codeSearchInput" placeholder="Encontrar no código..." oninput="performCodeSearch()">
-                            <button type="button" id="clearCodeSearchBtn" onclick="resetCodeSearch()" title="Limpar Busca">×</button>
+                            <input type="text" id="codeSearchInput" placeholder="Encontrar no código..."
+                                oninput="performCodeSearch()">
+                            <button type="button" id="clearCodeSearchBtn" onclick="resetCodeSearch()"
+                                title="Limpar Busca">×</button>
                             <span id="codeSearchCount">0/0</span>
                             <button type="button" class="nav-btn" onclick="prevCodeMatch()" title="Anterior">↑</button>
                             <button type="button" class="nav-btn" onclick="nextCodeMatch()" title="Próximo">↓</button>
                         </div>
                         <div class="editor-wrapper">
                             <div id="siteCodeBackdrop"></div>
-                            <textarea id="siteCode" placeholder="Cole aqui o código HTML completo da sua ferramenta..." required spellcheck="false"></textarea>
+                            <textarea id="siteCode" placeholder="Cole aqui o código HTML completo da sua ferramenta..."
+                                required spellcheck="false"></textarea>
                         </div>
                     </div>
                     <div class="form-actions">
@@ -863,8 +234,10 @@
             <div class="modal-content" style="max-width: 400px; text-align: center;">
                 <h2 style="margin-bottom: 20px;">Exportar Todos os Sites</h2>
                 <div style="display: flex; flex-direction: column; gap: 15px;">
-                    <button class="btn btn-primary" onclick="exportAllZip()">📦 Exportar como ZIP (Páginas HTML + JSON)</button>
-                    <button class="btn btn-secondary" onclick="exportAllJSON()">📄 Exportar como JSON (Apenas Dados)</button>
+                    <button class="btn btn-primary" onclick="exportAllZip()">📦 Exportar como ZIP (Páginas HTML +
+                        JSON)</button>
+                    <button class="btn btn-secondary" onclick="exportAllJSON()">📄 Exportar como JSON (Apenas
+                        Dados)</button>
                     <button class="btn btn-danger" onclick="closeExportAllModal()">Cancelar</button>
                 </div>
             </div>
@@ -874,8 +247,10 @@
             <div class="modal-content" style="max-width: 400px; text-align: center;">
                 <h2 style="margin-bottom: 20px;">Salvar Ferramenta</h2>
                 <div style="display: flex; flex-direction: column; gap: 15px;">
-                    <button class="btn btn-primary" onclick="executeExportSingle('html')">🌐 Salvar Página Física (.html)</button>
-                    <button class="btn btn-secondary" onclick="executeExportSingle('zip')">🗜️ Salvar Pacote ZIP (Página + Dados)</button>
+                    <button class="btn btn-primary" onclick="executeExportSingle('html')">🌐 Salvar Página Física
+                        (.html)</button>
+                    <button class="btn btn-secondary" onclick="executeExportSingle('zip')">🗜️ Salvar Pacote ZIP (Página
+                        + Dados)</button>
                     <button class="btn btn-danger" onclick="closeExportSingleModal()">Cancelar</button>
                 </div>
             </div>
@@ -897,7 +272,7 @@
         </div>
 
     </div>
-    
+
     <script>
         // Configuração do IndexedDB (Agora com Lazy Load)
         const DB_NAME = 'SitesManagerDB';
@@ -912,7 +287,7 @@
         let currentSiteIndex = -1;
         let editingIndex = -1;
         let lastOpenedSiteIndex = -1;
-        let siteToExportIndex = -1; 
+        let siteToExportIndex = -1;
 
         // ==========================================
         // 1. MOTOR DO BANCO DE DADOS (CRUD)
@@ -979,9 +354,9 @@
                     const tx = db.transaction([STORE_NAME], 'readonly');
                     const store = tx.objectStore(STORE_NAME);
                     const request = store.openCursor();
-                    
+
                     sites = []; // Limpa a memória RAM
-                    
+
                     request.onsuccess = (event) => {
                         const cursor = event.target.result;
                         if (cursor) {
@@ -1075,7 +450,7 @@
         function filterSites(searchTerm) {
             if (!searchTerm.trim()) { renderSites(); return; }
             const searchWords = searchTerm.trim().split(/\s+/).map(word => normalizeText(word));
-            
+
             // Busca apenas nos itens leves na RAM! Extremamente rápido.
             const filteredSites = sites.filter(site => {
                 const normalizedName = normalizeText(site.name);
@@ -1093,7 +468,7 @@
                 grid.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">Nenhum site encontrado</p>';
                 return;
             }
-            
+
             let sitesToRender = filteredSites.slice().reverse();
             sitesToRender.forEach((site) => {
                 const originalIndex = sites.indexOf(site);
@@ -1120,17 +495,17 @@
             currentSiteIndex = index;
             lastOpenedSiteIndex = index;
             localStorage.setItem('lastOpenedSiteIndex', index.toString());
-            
+
             const siteLight = sites[index];
             document.getElementById('fullscreenTitle').textContent = siteLight.name;
-            
+
             // 💤 HIBERNAÇÃO
             document.querySelector('.container').style.display = 'none';
             document.querySelector('.search-container').style.display = 'none';
             document.querySelector('.fundo').style.display = 'none';
             document.querySelector('.add-site-btn').style.display = 'none';
             document.querySelector('.search-random-btn').style.display = 'none';
-            
+
             document.getElementById('fullscreenOverlay').style.display = 'block';
 
             // ⚡ Puxa o código gigante SÓ AGORA do cofre!
@@ -1140,21 +515,21 @@
 
         function closeFullscreen() {
             const oldIframe = document.getElementById('siteFrame');
-            
+
             // ☀️ ACORDA O SISTEMA
             document.querySelector('.container').style.display = '';
             document.querySelector('.search-container').style.display = '';
             document.querySelector('.fundo').style.display = '';
             document.querySelector('.add-site-btn').style.display = '';
             document.querySelector('.search-random-btn').style.display = '';
-            
+
             // 🗑️ TRITURADOR DE MEMÓRIA (Destrói lixo de JS do iframe velho)
             const newIframe = document.createElement('iframe');
             newIframe.className = 'site-frame';
             newIframe.id = 'siteFrame';
             newIframe.style.cssText = 'width:100%; height:100%; border:none; background:#fff;';
             oldIframe.replaceWith(newIframe);
-            
+
             document.getElementById('fullscreenOverlay').style.display = 'none';
             currentSiteIndex = -1;
             renderSites();
@@ -1177,11 +552,11 @@
             if (index < 0 || index >= sites.length) return;
             editingIndex = index;
             const siteLight = sites[index];
-            
+
             document.getElementById('modalTitle').textContent = 'Editar Ferramenta';
             document.getElementById('siteName').value = siteLight.name;
             document.getElementById('siteDescription').value = siteLight.description || '';
-            document.getElementById('siteCode').value = 'Buscando código pesado do banco... ⏳'; 
+            document.getElementById('siteCode').value = 'Buscando código pesado do banco... ⏳';
             resetCodeSearch();
             document.getElementById('siteModal').style.display = 'block';
 
@@ -1209,7 +584,7 @@
 
         function editCurrentSite() {
             if (currentSiteIndex >= 0 && currentSiteIndex < sites.length) {
-                const indexToEdit = currentSiteIndex; 
+                const indexToEdit = currentSiteIndex;
                 closeFullscreen();
                 setTimeout(() => { editSite(indexToEdit); }, 100);
             }
@@ -1399,7 +774,7 @@
             document.getElementById('codeSearchInput').value = '';
             document.getElementById('codeSearchCount').textContent = '0/0';
             document.getElementById('clearCodeSearchBtn').style.display = 'none';
-            codeMatchPositions = []; currentCodeMatchIndex = -1; backdrop.innerHTML = ''; 
+            codeMatchPositions = []; currentCodeMatchIndex = -1; backdrop.innerHTML = '';
         }
 
         function escapeHtml(unsafe) {
@@ -1426,7 +801,7 @@
                     lastPos = pos.end;
                 });
                 backdrop.innerHTML = html + escapeHtml(text.substring(lastPos)) + (text.endsWith('\n') ? '\n ' : '');
-                currentCodeMatchIndex = 0; highlightCurrentCodeMatch(); 
+                currentCodeMatchIndex = 0; highlightCurrentCodeMatch();
             } else {
                 backdrop.innerHTML = escapeHtml(text); document.getElementById('codeSearchCount').textContent = '0/0';
             }
@@ -1445,16 +820,16 @@
             }
         }
 
-        function nextCodeMatch() { if(codeMatchPositions.length) { currentCodeMatchIndex = (currentCodeMatchIndex + 1) % codeMatchPositions.length; highlightCurrentCodeMatch(); } }
-        function prevCodeMatch() { if(codeMatchPositions.length) { currentCodeMatchIndex = (currentCodeMatchIndex - 1 + codeMatchPositions.length) % codeMatchPositions.length; highlightCurrentCodeMatch(); } }
+        function nextCodeMatch() { if (codeMatchPositions.length) { currentCodeMatchIndex = (currentCodeMatchIndex + 1) % codeMatchPositions.length; highlightCurrentCodeMatch(); } }
+        function prevCodeMatch() { if (codeMatchPositions.length) { currentCodeMatchIndex = (currentCodeMatchIndex - 1 + codeMatchPositions.length) % codeMatchPositions.length; highlightCurrentCodeMatch(); } }
 
-        textarea.addEventListener('keydown', function(e) {
+        textarea.addEventListener('keydown', function (e) {
             if (e.key === 'Tab') {
                 e.preventDefault();
                 const start = this.selectionStart, end = this.selectionEnd;
                 this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
                 this.selectionStart = this.selectionEnd = start + 1;
-                if(backdrop.innerHTML !== '') { backdrop.innerHTML = escapeHtml(this.value); resetCodeSearch(); }
+                if (backdrop.innerHTML !== '') { backdrop.innerHTML = escapeHtml(this.value); resetCodeSearch(); }
             }
         });
 
@@ -1509,4 +884,5 @@
         (async () => { await loadSites(); })();
     </script>
 </body>
+
 </html>
